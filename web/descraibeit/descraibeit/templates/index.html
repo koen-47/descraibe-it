@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{current_description}}
+{% endblock title %}
+
+{% block content %}
+<div>
+    <p>
+        Word: {{prediction.word}} <br>
+        Probability: {{prediction.probability}}
+    </p>
+
+    <form>
+      <label for="fname">Description:</label><br>
+      <input type="text" id="fname" name="txtDescription"
+             value="This majestic predator hunts for prey on the plains of Africa."><br>
+      <input type="submit" value="Submit" name="btnSubmit">
+    </form>
+</div>
+{% endblock content %}

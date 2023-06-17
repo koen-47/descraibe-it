@@ -1,0 +1,14 @@
+{
+    "builds": [
+      {
+        "src": "web/descraibeit/descraibeit/wsgi.py",
+        "use": "@vercel/python"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "web/descraibeit/descraibeit/wsgi.py"
+      }
+    ]
+}

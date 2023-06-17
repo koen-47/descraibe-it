@@ -1,0 +1,16 @@
+<html>
+   <head>
+      <title>
+         {% block title %}Base title{% endblock %}
+      </title>
+         {% comment %} This Bootsrap css is added to all pages {% endcomment %}
+   </head>
+   <body>
+        <h1>
+            descrAIbe it
+        </h1>
+        {% block content %}
+            Body content
+        {% endblock %}
+   </body>
+</html>

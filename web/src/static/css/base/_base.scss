@@ -1,0 +1,20 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    color-scheme: dark;
+    padding-bottom: 20px;
+}
+  
+body {
+    margin: 0;
+    font-family: sans-serif;    
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: _palette(bg-dark);
+    color: #9aa2a6;
+    
+}

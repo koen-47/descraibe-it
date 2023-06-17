@@ -1,0 +1,22 @@
+.probabilities-container {
+    // border: 1px solid yellow;
+    position: relative;
+    width: 100%;
+    top: 140px;
+    left: 10px;
+    overflow-y: auto;
+}
+
+.probability {
+    margin-bottom: 20px;
+    color: _palette(bg-dark);
+    height: 30px;
+    border: 1px solid red;
+    display: flexbox;
+    justify-content: center;
+    padding: 4px;
+
+    .probability-value {
+        float: right;
+    }
+}
