@@ -4,6 +4,8 @@ from data.GloVeEmbedding import GloVeEmbedding
 from data.PromptManager import PromptManager
 from data.Dataset import Dataset
 from models.LSTM import LSTM
+from models.SVM import SVM
+from models.kNN import kNN
 
 args = {
     "prompt_template": 'Give me <var1> <var2>unique descriptions of <var3>. Do not include the word '
@@ -31,6 +33,8 @@ glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt")
 # glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
 dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, shuffle=True)
 model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
-model.train()
-model.evaluate(load_model_path="./models/saved/lstm.h5")
-model.plot_confusion_matrix()
+model.start_tuning()
+
+# model.train()
+# model.evaluate(load_model_path="./models/saved/lstm.h5")
+# model.plot_confusion_matrix()

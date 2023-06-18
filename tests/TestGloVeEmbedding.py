@@ -1,6 +1,8 @@
 import itertools
 import unittest
 
+import numpy as np
+
 from data.GloVeEmbedding import GloVeEmbedding
 from util import load_categories, find_maximal_subset
 
@@ -151,8 +153,12 @@ class TestGloVeEmbedding840B300d(unittest.TestCase):
     def test_temp(self):
         words = load_categories("../data/saved/categories_289.txt")
         embedding_word_vectors = {word: self.embeddings.embedding_index[word] for word in words}
-        subset = find_maximal_subset(embedding_word_vectors, k=25)
+        subset = find_maximal_subset(embedding_word_vectors, k=100)
         min_distance = self.embeddings.calculate_min_distance_between_words(subset)
         print(subset)
         print(min_distance)
+        chunks = np.array_split(subset, len(subset) // 25)
+        for chunk in chunks:
+            print(chunk)
+
         # self.embeddings.visualize_words(words, special_words=subset)

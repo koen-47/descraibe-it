@@ -3,6 +3,7 @@ import json
 from abc import ABC
 import random
 
+import optuna
 import numpy as np
 import scipy
 import pickle
@@ -84,10 +85,8 @@ class LSTM:
         scheduler = tensorflow.keras.callbacks.LearningRateScheduler(scheduler)
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
         model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=64,
-                  validation_split=0.2, epochs=5, verbose=1, callbacks=[])
+                  validation_split=0.2, epochs=5, verbose=1, callbacks=[es, scheduler])
         model.save("./models/saved/lstm.h5", save_format="h5")
-        pickle.dump(model, open("./models/saved/lstm_pickle.pkl", "wb"))
-        self.__model = model
 
     def predict(self, text):
         """
@@ -134,3 +133,39 @@ class LSTM:
         plt.subplots_adjust(bottom=0.17)
         plt.savefig("./visualizations/confusion_matrix_lstm.png", bbox_inches="tight")
         plt.show()
+
+
+    def __create_model(self, trial):
+        vocab_size = len(self.__tokenizer.word_index) + 1
+        embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
+
+        n_lstm_units = trial.suggest_int('n_units', 16, 256, step=16)
+
+        model = Sequential()
+        model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
+                            input_length=self.__embedding.dimensionality, trainable=False))
+        model.add(Bidirectional(LSTMLayer(n_lstm_units, return_sequences=True)))
+        model.add(GlobalMaxPooling1D())
+        model.add(Dense(64, activation="relu"))
+        model.add(Dense(64, activation="relu"))
+        model.add(Dense(64, activation="relu"))
+        model.add(Dense(25, activation='softmax'))
+        optimizer = Adam(learning_rate=0.001)
+        model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
+        return model
+
+    def objective(self, trial):
+        train_seq = self.__tokenizer.texts_to_sequences(self.__train["description"])
+        train_seq = pad_sequences(train_seq, maxlen=self.__embedding.dimensionality)
+        model = self.__create_model(trial)
+        model.fit(np.array(train_seq), np.array(self.__train["label"]), epochs=1, batch_size=64,
+                  validation_split=0.2)
+        test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
+        test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
+        score = model.evaluate(np.array(test_seq), np.array(self.__test["label"]))
+        return score[0]
+
+    def start_tuning(self):
+        study = optuna.create_study()
+        study.optimize(self.objective, n_trials=2)
+        print(study.best_params)

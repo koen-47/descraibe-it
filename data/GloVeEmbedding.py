@@ -20,7 +20,6 @@ class GloVeEmbedding:
         """
         self.embedding_index = self.__get_embedding_index(file_path)
         self.dimensionality = int(os.path.split(file_path)[1].split(".")[2][:-1])
-        print(self.dimensionality)
 
     def __get_embedding_index(self, file_path):
         """
@@ -30,7 +29,8 @@ class GloVeEmbedding:
         """
         embeddings_index = dict()
         file = open(file_path, encoding="utf8")
-        for line in file:
+        num_lines = sum(1 for _ in open(file_path, encoding="utf-8"))
+        for line in tqdm(file, total=num_lines, desc="Loading GloVe embedding"):
             values = line.strip().split(" ")
             word = values[0]
             coefs = np.asarray(values[1:], dtype="float32")
