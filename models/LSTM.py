@@ -85,8 +85,8 @@ class LSTM:
         scheduler = tensorflow.keras.optimizers.schedules.CosineDecay(initial_learning_rate=0.001, decay_steps=50)
         scheduler = tensorflow.keras.callbacks.LearningRateScheduler(scheduler)
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
-        model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=256,
-                  validation_split=0.2, epochs=10000, verbose=1, callbacks=[es])
+        model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=64,
+                  validation_split=0.2, epochs=10000, verbose=1, callbacks=[es, scheduler])
         model.save("./models/saved/lstm.h5", save_format="h5")
 
     def predict(self, text):
@@ -104,7 +104,7 @@ class LSTM:
         pred_label = self.__dataset.decode_label(pred_probs.argmax(axis=-1))
         return pred_label, pred_max_prob, pred_probs
 
-    def evaluate(self, load_model_path=None):
+    def evaluate(self, load_model_path=None, num_incorrect_examples=10):
         """
         Evaluates the model on the test set based on the accuracy.
         :return: Returns the score containing test set accuracy and loss.

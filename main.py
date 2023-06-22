@@ -29,12 +29,13 @@ def start_prompts():
     manager.start_prompts()
 
 
-# glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt")
-glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
 dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, shuffle=True)
+glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt")
+# glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
 model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
-# model.start_tuning()
 
+# model.start_tuning()
 model.train()
+
 model.evaluate(load_model_path="./models/saved/lstm.h5")
 model.plot_confusion_matrix()

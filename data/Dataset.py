@@ -46,7 +46,7 @@ class Dataset:
 
     def __train_test_val_split(self):
         if self.shuffle:
-            self.data = self.data.sample(frac=1).reset_index(drop=True)
+            self.data = self.data.sample(frac=1, random_state=42).reset_index(drop=True)
         train = self.data[:int(len(self.data) * (1 - self.test_split))]
         test = self.data[len(train):]
         if self.val_split > 0:
