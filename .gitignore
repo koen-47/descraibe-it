@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 web/node_modules
+data/embeddings/glove.6B.100d.txt
 
 # C extensions
 *.so

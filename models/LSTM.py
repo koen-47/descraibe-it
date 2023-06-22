@@ -71,21 +71,22 @@ class LSTM:
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
-        model.add(Bidirectional(LSTMLayer(64, return_sequences=True)))
-        model.add(GlobalMaxPooling1D())
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(64, activation="relu"))
+        model.add(Bidirectional(LSTMLayer(480)))
+        model.add(Dense(656, activation="relu"))
+        model.add(Dropout(0.7))
         model.add(Dense(25, activation='softmax'))
-        optimizer = Adam(learning_rate=0.001)
+        optimizer = Adam(learning_rate=0.0085)
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
         print(model.summary())
 
+        # {'n_lstm_units': 368, 'n_fc_layers': 2, 'n_fc_width': 512, 'dropout_prob': 0.4}
+        # {'n_lstm_units': 480, 'n_fc_layers': 1, 'n_fc_width': 656, 'dropout_prob': 0.7000000000000001, 'lr': 0.0008575362871413658}
+
         scheduler = tensorflow.keras.optimizers.schedules.CosineDecay(initial_learning_rate=0.001, decay_steps=50)
         scheduler = tensorflow.keras.callbacks.LearningRateScheduler(scheduler)
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
-        model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=64,
-                  validation_split=0.2, epochs=5, verbose=1, callbacks=[es, scheduler])
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
+        model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=256,
+                  validation_split=0.2, epochs=10000, verbose=1, callbacks=[es])
         model.save("./models/saved/lstm.h5", save_format="h5")
 
     def predict(self, text):
@@ -134,23 +135,25 @@ class LSTM:
         plt.savefig("./visualizations/confusion_matrix_lstm.png", bbox_inches="tight")
         plt.show()
 
-
     def __create_model(self, trial):
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
-        n_lstm_units = trial.suggest_int('n_units', 16, 256, step=16)
+        n_lstm_units = trial.suggest_int('n_lstm_units', 16, 512, step=16)
+        n_fc_layers = trial.suggest_int('n_fc_layers', 1, 10, step=1)
+        n_fc_width = trial.suggest_int('n_fc_width', 16, 2048, step=64)
+        dropout_prob = trial.suggest_float('dropout_prob', 0., 0.9, step=0.1)
+        lr = trial.suggest_loguniform('lr', 1e-5, 1e-1)
 
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
-        model.add(Bidirectional(LSTMLayer(n_lstm_units, return_sequences=True)))
-        model.add(GlobalMaxPooling1D())
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(64, activation="relu"))
-        model.add(Dense(64, activation="relu"))
+        model.add(Bidirectional(LSTMLayer(n_lstm_units)))
+        for _ in range(n_fc_layers):
+            model.add(Dense(n_fc_width, activation="relu"))
+            model.add(Dropout(dropout_prob))
         model.add(Dense(25, activation='softmax'))
-        optimizer = Adam(learning_rate=0.001)
+        optimizer = Adam(learning_rate=lr)
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
         return model
 
@@ -158,8 +161,9 @@ class LSTM:
         train_seq = self.__tokenizer.texts_to_sequences(self.__train["description"])
         train_seq = pad_sequences(train_seq, maxlen=self.__embedding.dimensionality)
         model = self.__create_model(trial)
-        model.fit(np.array(train_seq), np.array(self.__train["label"]), epochs=1, batch_size=64,
-                  validation_split=0.2)
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=0, patience=10)
+        model.fit(np.array(train_seq), np.array(self.__train["label"]), epochs=10000, batch_size=512,
+                  validation_split=0.2, verbose=0, callbacks=[es])
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
         test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
         score = model.evaluate(np.array(test_seq), np.array(self.__test["label"]))
@@ -167,5 +171,5 @@ class LSTM:
 
     def start_tuning(self):
         study = optuna.create_study()
-        study.optimize(self.objective, n_trials=2)
+        study.optimize(self.objective, n_trials=100)
         print(study.best_params)
