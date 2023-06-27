@@ -8,6 +8,7 @@ import numpy as np
 import scipy
 import pickle
 import tensorflow
+import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
@@ -21,6 +22,7 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras import Input
 from keras.layers import Embedding, GlobalMaxPooling1D
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import LabelEncoder
 from data.GloVeEmbedding import GloVeEmbedding
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
@@ -46,11 +48,13 @@ class LSTM:
         """
         self.__dataset = dataset
         self.__train = dataset.train
+        self.__val = dataset.val
         self.__test = dataset.test
         self.__embedding = embedding
         self.__tokenizer = Tokenizer()
         self.__tokenizer.fit_on_texts(self.__train["description"])
         self.__model = None
+        self.__hyperparameters = {}
 
         if save_tokenizer is not None:
             tokenizer_json = self.__tokenizer.to_json()
@@ -86,8 +90,8 @@ class LSTM:
         scheduler = tensorflow.keras.callbacks.LearningRateScheduler(scheduler)
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
         model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=64,
-                  validation_split=0.2, epochs=10000, verbose=1, callbacks=[es, scheduler])
-        model.save("./models/saved/lstm.h5", save_format="h5")
+                  validation_split=0.2, epochs=1, verbose=1, callbacks=[es, scheduler])
+        model.save("./models/saved/lstm-small.h5", save_format="h5")
 
     def predict(self, text):
         """
@@ -109,14 +113,31 @@ class LSTM:
         Evaluates the model on the test set based on the accuracy.
         :return: Returns the score containing test set accuracy and loss.
         """
+        label_encoder = LabelEncoder()
+        label_encoder.classes_ = np.load("./models/saved/labels.npy", allow_pickle=True)
         if load_model_path is not None:
             self.__model = load_model(load_model_path)
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
         test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
-        score = self.__model.evaluate(test_seq, self.__test["label"], verbose=0)
-        print(f"Test set loss: {score[0]}")
-        print(f"Test set accuracy: {score[1]}")
-        return score
+        preds = self.__model.predict(test_seq)
+        x_test = self.__test["description"]
+        y_pred = label_encoder.inverse_transform([np.argmax(pred) for pred in preds])
+        y_pred_prob = [np.max(pred) for pred in preds]
+        y_test = label_encoder.inverse_transform(self.__test["label"])
+        incorrect = [(desc, pred, prob, actual) for desc, pred, prob, actual in
+                     zip(x_test, y_pred, y_pred_prob, y_test) if pred != actual]
+        num_incorrect_examples = len(incorrect) if num_incorrect_examples == "full" else num_incorrect_examples
+        print(f"Number of incorrect examples: {len(incorrect) / len(x_test)}")
+        # for desc, pred, prob, actual in incorrect[:num_incorrect_examples]:
+        #     print(f"Description: {desc}")
+        #     print(f"Predicted label: {pred}")
+        #     print(f"Label probability: {prob}")
+        #     print(f"Actual label: {actual}")
+        incorrect_df = pd.DataFrame(incorrect, columns=["description", "predicted", "probability", "actual"])
+        # score = self.__model.evaluate(test_seq, self.__test["label"], verbose=0)
+        # print(f"Test set loss: {score[0]}")
+        # print(f"Test set accuracy: {score[1]}")
+        return incorrect_df
 
     def plot_confusion_matrix(self):
         """
@@ -139,37 +160,44 @@ class LSTM:
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
-        n_lstm_units = trial.suggest_int('n_lstm_units', 16, 512, step=16)
-        n_fc_layers = trial.suggest_int('n_fc_layers', 1, 10, step=1)
-        n_fc_width = trial.suggest_int('n_fc_width', 16, 2048, step=64)
-        dropout_prob = trial.suggest_float('dropout_prob', 0., 0.9, step=0.1)
-        lr = trial.suggest_loguniform('lr', 1e-5, 1e-1)
+        n_lstm_units = self.__hyperparameters["n_lstm_units"]
+        n_fc_layers = self.__hyperparameters["n_fc_layers"]
+        n_fc_units = self.__hyperparameters["n_fc_units"]
+        dropout_p = self.__hyperparameters["dropout_p"]
+
+        n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"], step=n_lstm_units["step"])
+        n_fc_layers = trial.suggest_int("n_fc_layers", n_fc_layers["min"], n_fc_layers["max"], step=n_fc_layers["step"])
+        n_fc_units = trial.suggest_int("n_fc_units", n_fc_units["min"], n_fc_units["max"], step=n_fc_units["step"])
+        dropout_prob = trial.suggest_float("dropout_prob", dropout_p["min"], dropout_p["max"], step=dropout_p["step"])
 
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
         model.add(Bidirectional(LSTMLayer(n_lstm_units)))
         for _ in range(n_fc_layers):
-            model.add(Dense(n_fc_width, activation="relu"))
+            model.add(Dense(n_fc_units, activation="relu"))
             model.add(Dropout(dropout_prob))
         model.add(Dense(25, activation='softmax'))
-        optimizer = Adam(learning_rate=lr)
+        optimizer = Adam()
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
         return model
 
-    def objective(self, trial):
-        train_seq = self.__tokenizer.texts_to_sequences(self.__train["description"])
-        train_seq = pad_sequences(train_seq, maxlen=self.__embedding.dimensionality)
+    def __objective(self, trial):
+        x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
+        x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
+        y_train = np.array(self.__train["label"])
+        x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
+        x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
+        y_val = np.array(self.__val["label"])
         model = self.__create_model(trial)
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=0, patience=10)
-        model.fit(np.array(train_seq), np.array(self.__train["label"]), epochs=10000, batch_size=512,
-                  validation_split=0.2, verbose=0, callbacks=[es])
-        test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
-        test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
-        score = model.evaluate(np.array(test_seq), np.array(self.__test["label"]))
+        model.fit(x_train, y_train, epochs=10000, batch_size=256,
+                  validation_data=(x_train, y_train), verbose=0, callbacks=[es])
+        score = model.evaluate(x_val, y_val)
         return score[0]
 
-    def start_tuning(self):
+    def start_tuning(self, n_trials, hyperparameters):
+        self.__hyperparameters = hyperparameters
         study = optuna.create_study()
-        study.optimize(self.objective, n_trials=100)
+        study.optimize(self.__objective, n_trials=n_trials)
         print(study.best_params)

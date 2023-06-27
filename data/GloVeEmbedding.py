@@ -13,13 +13,14 @@ class GloVeEmbedding:
     Class that handles all functionality related to GloVe embeddings.
     """
 
-    def __init__(self, file_path):
+    def __init__(self, file_path, dimensionality):
         """
         Constructor for the GloVe embedding class.
         :param file_path: File path to where the GloVe embeddings are stored.
         """
-        self.embedding_index = self.__get_embedding_index(file_path)
-        self.dimensionality = int(os.path.split(file_path)[1].split(".")[2][:-1])
+        if file_path is not None:
+            self.embedding_index = self.__get_embedding_index(file_path)
+        self.dimensionality = dimensionality
 
     def __get_embedding_index(self, file_path):
         """

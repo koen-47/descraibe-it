@@ -1,4 +1,5 @@
 import json
+import os.path
 import re
 from abc import ABC, abstractmethod
 from nltk.corpus import stopwords, wordnet
@@ -11,14 +12,18 @@ nltk.download('punkt', quiet=True)
 
 
 class PreprocessingPipeline(ABC):
-    def __init__(self, dataset, pipeline, feature="description"):
+    def __init__(self, dataset, pipeline, feature="description", shuffle=True):
         self.dataset = dataset
         self.pipeline = pipeline
         self.feature = feature
 
+        if shuffle:
+            self.dataset = self.dataset.sample(frac=1, random_state=42).reset_index(drop=True)
+
     def apply(self):
         for preprocess in self.pipeline:
             self.__preprocess(preprocess)
+        return self.dataset
 
     def __preprocess(self, preprocess):
         if preprocess == "make_lowercase":
@@ -66,7 +71,7 @@ class PreprocessingPipeline(ABC):
         self.dataset[self.feature] = pd.Series(removed_stopwords)
 
     def __expand_contractions(self):
-        with open("./data/preprocessing/contractions_dict.json") as file:
+        with open(f"{os.path.dirname(__file__)}/preprocessing/contractions_dict.json") as file:
             contractions = json.load(file)
         expanded_contractions = []
         for sentence in self.dataset[self.feature]:
@@ -100,4 +105,4 @@ class PreprocessingPipeline(ABC):
             return wordnet.NOUN
 
     def __remove_duplicates(self):
-        self.dataset.drop_duplicates(subset="description", keep="last", inplace=True)
+        self.dataset.drop_duplicates(inplace=True)

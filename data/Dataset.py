@@ -1,3 +1,4 @@
+import os
 import re
 
 from nltk.corpus import stopwords
@@ -13,7 +14,7 @@ class Dataset:
     Class to handle all necessary functionality and data handling related to the training, test and validation data.
     """
 
-    def __init__(self, csv_path, test_split, val_split=0., shuffle=False, remove_stopwords=False):
+    def __init__(self, csv_path, test_split, pipeline=None, val_split=0., shuffle=False, drop_duplicates=False):
         """
         Constructor for the Dataset class.
         :param csv_path: Path to the CSV file that contains all the data.
@@ -26,27 +27,28 @@ class Dataset:
         self.test_split = test_split
         self.val_split = val_split
         self.shuffle = shuffle
-        self.remove_stopwords = remove_stopwords
+        # self.remove_stopwords = remove_stopwords
 
         self.data = pd.read_csv(csv_path)
 
-        pipeline = PreprocessingPipeline(self.data, pipeline=[
-            "make_lowercase",
-            "expand_contractions",
-            "clean_text",
-            # "remove_stopwords",
-            # "lemmatize",
-            "remove_duplicates"
-        ])
-
-        pipeline.apply()
+        pipeline = pipeline if pipeline is not None else ["make_lowercase", "expand_contractions",
+                                                          "clean_text", "remove_duplicates"]
+        self.data = PreprocessingPipeline(self.data, pipeline=pipeline).apply()
 
         self.data["label"] = self.__encode_labels(self.data["label"])
-        self.train, self.test = self.__train_test_val_split()
+
+        if val_split > 0.:
+            self.train, self.val, self.test = self.__train_test_val_split()
+        else:
+            self.train, self.test = self.__train_test_val_split()
+
+        if drop_duplicates:
+            self.train = self.train.drop_duplicates(keep="first").reset_index(drop=True)
+            self.test = self.test.drop_duplicates(keep="first").reset_index(drop=True)
+            if self.val_split > 0.:
+                self.val = self.val.drop_duplicates(keep="first").reset_index(drop=True)
 
     def __train_test_val_split(self):
-        if self.shuffle:
-            self.data = self.data.sample(frac=1, random_state=42).reset_index(drop=True)
         train = self.data[:int(len(self.data) * (1 - self.test_split))]
         test = self.data[len(train):]
         if self.val_split > 0:
@@ -59,7 +61,7 @@ class Dataset:
     def __encode_labels(self, labels):
         self.__label_encoder = LabelEncoder()
         encoded = self.__label_encoder.fit_transform(labels)
-        np.save("./models/saved/labels.npy", self.__label_encoder.classes_)
+        np.save(f"{os.path.dirname(__file__)}/../models/saved/labels.npy", self.__label_encoder.classes_)
         return encoded
 
     def clean_text(self, text):
@@ -81,11 +83,11 @@ class Dataset:
             sentence = re.sub(r'^(\d{1,2})(.|\)) ', '', sentence)
             sentence = re.sub(r'  ', ' ', sentence)
 
-            if self.remove_stopwords:
-                sentence = sentence.split()
-                stops = set(stopwords.words("english"))
-                sentence = [w for w in sentence if not w in stops]
-                sentence = " ".join(sentence)
+            # if self.remove_stopwords:
+            #     sentence = sentence.split()
+            #     stops = set(stopwords.words("english"))
+            #     sentence = [w for w in sentence if not w in stops]
+            #     sentence = " ".join(sentence)
 
             clean_text.append(sentence)
         return pd.Series(clean_text)
