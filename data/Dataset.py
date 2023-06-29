@@ -59,9 +59,9 @@ class Dataset:
         return train, test
 
     def __encode_labels(self, labels):
-        self.__label_encoder = LabelEncoder()
-        encoded = self.__label_encoder.fit_transform(labels)
-        np.save(f"{os.path.dirname(__file__)}/../models/saved/labels.npy", self.__label_encoder.classes_)
+        self.label_encoder = LabelEncoder()
+        encoded = self.label_encoder.fit_transform(labels)
+        np.save(f"{os.path.dirname(__file__)}/../models/saved/labels.npy", self.label_encoder.classes_)
         return encoded
 
     def clean_text(self, text):

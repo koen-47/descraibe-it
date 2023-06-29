@@ -23,7 +23,7 @@ class TestOutlierDetection(unittest.TestCase):
         with tf.device('/CPU:0'):
             embeddings = model(anvil_df["description"].tolist())
             print(embeddings.numpy())
-            clf = LocalOutlierFactor(n_neighbors=10)
+            clf = LocalOutlierFactor(n_neighbors=25)
             anvil_df["lof"] = clf.fit_predict(embeddings)
             outliers = anvil_df.loc[anvil_df["lof"] == -1].drop(["label"], axis=1).reset_index(drop=True)
             for outlier in outliers["description"].tolist():

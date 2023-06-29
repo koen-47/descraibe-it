@@ -17,6 +17,8 @@ from tensorflow.keras.layers import Dense, TextVectorization, Bidirectional, Dro
 from keras.layers import Bidirectional
 from tensorflow.keras.layers import LSTM as LSTMLayer
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.schedules import CosineDecay
+from tensorflow.keras.callbacks import LearningRateScheduler
 # from tensorflow.keras.saving import load_model
 from tensorflow.keras.models import load_model
 from tensorflow.keras import Input
@@ -24,8 +26,11 @@ from keras.layers import Embedding, GlobalMaxPooling1D
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import LabelEncoder
 from data.GloVeEmbedding import GloVeEmbedding
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score, \
+    f1_score
 import matplotlib.pyplot as plt
+
+from models.Model import Model
 
 # Set the seed for reproducibility
 tensorflow.keras.utils.set_random_seed(42)
@@ -33,19 +38,8 @@ random.seed(42)
 np.random.seed(42)
 
 
-class LSTM:
-    """
-    Class in which the LSTM model is implemented.
-    """
-
-    def __init__(self, dataset, embedding, load_model_path=None, save_tokenizer=None):
-        """
-        Constructor for the LSTM class.
-        :param dataset: Dataset object that contains all the necessary, correctly formatted data.
-        :param load_model_path: String that contains the path to load a pretrained model.
-        :param save_tokenizer: String that contains the path to show where to save tokenizer that has been fitted to
-        the training data.
-        """
+class LSTM(Model):
+    def __init__(self, dataset, embedding, save_tokenizer=None):
         self.__dataset = dataset
         self.__train = dataset.train
         self.__val = dataset.val
@@ -61,88 +55,83 @@ class LSTM:
             with io.open(save_tokenizer, 'w+', encoding='utf-8') as f:
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
-    def train(self):
-        """
-        Class function to start training the model.
-        :param embedding: Embedding object that contains all the necessary information related to the embedding (i.e.,
-        embedding matrix and word index)
-        """
-        train_seq = self.__tokenizer.texts_to_sequences(self.__train["description"])
-        train_seq = pad_sequences(train_seq, maxlen=self.__embedding.dimensionality)
+    def fit(self, params):
+        x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
+        x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
+        y_train = np.array(self.__train["label"])
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
-        model.add(Bidirectional(LSTMLayer(480)))
-        model.add(Dense(656, activation="relu"))
-        model.add(Dropout(0.7))
+        for lstm_layer in params["lstm_layers"]:
+            units = lstm_layer["units"]
+            bidirectional = lstm_layer["bidirectional"]
+            layer = Bidirectional(LSTMLayer(units)) if bidirectional else LSTMLayer(units)
+            model.add(layer)
+        for fc_layer in params["fc_layers"]:
+            units = fc_layer["units"]
+            dropout_p = fc_layer["dropout_p"]
+            model.add(Dense(units, activation="relu"))
+            if dropout_p is not None:
+                model.add(Dropout(dropout_p))
         model.add(Dense(25, activation='softmax'))
-        optimizer = Adam(learning_rate=0.0085)
+        optimizer = Adam()
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
-        print(model.summary())
 
-        # {'n_lstm_units': 368, 'n_fc_layers': 2, 'n_fc_width': 512, 'dropout_prob': 0.4}
-        # {'n_lstm_units': 480, 'n_fc_layers': 1, 'n_fc_width': 656, 'dropout_prob': 0.7000000000000001, 'lr': 0.0008575362871413658}
+        x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
+        x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
+        y_val = np.array(self.__val["label"])
+        scheduler = self.__get_lr_scheduler(params["scheduler"])
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=params["early_stopping"]["verbose"],
+                           patience=params["early_stopping"]["patience"])
+        model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], validation_data=(x_val, y_val),
+                  epochs=params["misc"]["epochs"], verbose=1,
+                  callbacks=[es, scheduler])
+        model.save(params["misc"]["save_filepath"], save_format="h5")
+        self.__model = model
 
-        scheduler = tensorflow.keras.optimizers.schedules.CosineDecay(initial_learning_rate=0.001, decay_steps=50)
-        scheduler = tensorflow.keras.callbacks.LearningRateScheduler(scheduler)
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
-        model.fit(np.array(train_seq), np.array(self.__train["label"]), batch_size=64,
-                  validation_split=0.2, epochs=1, verbose=1, callbacks=[es, scheduler])
-        model.save("./models/saved/lstm-small.h5", save_format="h5")
+    def __get_lr_scheduler(self, params):
+        initial_lr = params["initial_learning_rate"]
+        decay_steps = params["decay_steps"]
+        scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
+        scheduler = LearningRateScheduler(scheduler)
+        return scheduler
 
-    def predict(self, text):
-        """
-        Class function to predict a word based on the given text. This function cleans and tokenizes the raw input text.
-        :param text: Raw input text.
-        :return: Returns the predicted label (string), its probability (float) and the probabilities for all classes/
-        words (array of floats).
-        """
-        text = self.__dataset.clean_text(text)
-        text = self.__tokenizer.texts_to_sequences(text)
-        text = pad_sequences(text, maxlen=self.__embedding.dimensionality)
-        pred_probs = self.__model.predict(text)
+    def predict(self, x):
+        x = self.__dataset.clean_text(x)
+        x = self.__tokenizer.texts_to_sequences(x)
+        x = pad_sequences(x, maxlen=self.__embedding.dimensionality)
+        pred_probs = self.__model.predict(x)
         pred_max_prob = pred_probs.max(axis=-1)
         pred_label = self.__dataset.decode_label(pred_probs.argmax(axis=-1))
         return pred_label, pred_max_prob, pred_probs
 
-    def evaluate(self, load_model_path=None, num_incorrect_examples=10):
-        """
-        Evaluates the model on the test set based on the accuracy.
-        :return: Returns the score containing test set accuracy and loss.
-        """
-        label_encoder = LabelEncoder()
-        label_encoder.classes_ = np.load("./models/saved/labels.npy", allow_pickle=True)
-        if load_model_path is not None:
-            self.__model = load_model(load_model_path)
-        test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
-        test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
-        preds = self.__model.predict(test_seq)
+    def evaluate(self, get_misclassifications=True):
+        label_encoder = self.__dataset.label_encoder
+        x_test = self.__tokenizer.texts_to_sequences(self.__test["description"])
+        x_test = pad_sequences(x_test, maxlen=self.__embedding.dimensionality)
+        y_pred = self.__model.predict(x_test)
+
         x_test = self.__test["description"]
-        y_pred = label_encoder.inverse_transform([np.argmax(pred) for pred in preds])
-        y_pred_prob = [np.max(pred) for pred in preds]
+        y_pred_label = label_encoder.inverse_transform([np.argmax(pred) for pred in y_pred])
+        y_pred_prob = [np.max(pred) for pred in y_pred]
         y_test = label_encoder.inverse_transform(self.__test["label"])
-        incorrect = [(desc, pred, prob, actual) for desc, pred, prob, actual in
-                     zip(x_test, y_pred, y_pred_prob, y_test) if pred != actual]
-        num_incorrect_examples = len(incorrect) if num_incorrect_examples == "full" else num_incorrect_examples
-        print(f"Number of incorrect examples: {len(incorrect) / len(x_test)}")
-        # for desc, pred, prob, actual in incorrect[:num_incorrect_examples]:
-        #     print(f"Description: {desc}")
-        #     print(f"Predicted label: {pred}")
-        #     print(f"Label probability: {prob}")
-        #     print(f"Actual label: {actual}")
-        incorrect_df = pd.DataFrame(incorrect, columns=["description", "predicted", "probability", "actual"])
-        # score = self.__model.evaluate(test_seq, self.__test["label"], verbose=0)
-        # print(f"Test set loss: {score[0]}")
-        # print(f"Test set accuracy: {score[1]}")
-        return incorrect_df
+
+        accuracy = accuracy_score(y_test, y_pred_label)
+        precision = precision_score(y_test, y_pred_label, average='micro')
+        recall = recall_score(y_test, y_pred_label, average='micro')
+        f1 = f1_score(y_test, y_pred_label, average='micro')
+
+        if get_misclassifications:
+            incorrect = [(desc, pred, prob, actual) for desc, pred, prob, actual in
+                         zip(x_test, y_pred_label, y_pred_prob, y_test) if pred != actual]
+            incorrect_df = pd.DataFrame(incorrect, columns=["description", "predicted", "probability", "actual"])
+            return accuracy, precision, recall, f1, incorrect_df
+        return accuracy, precision, recall, f1
 
     def plot_confusion_matrix(self):
-        """
-        Generates a plot containing a confusion matrix with all classes.
-        """
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
         test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)
         pred_labels = self.__model.predict(test_seq)
@@ -165,7 +154,8 @@ class LSTM:
         n_fc_units = self.__hyperparameters["n_fc_units"]
         dropout_p = self.__hyperparameters["dropout_p"]
 
-        n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"], step=n_lstm_units["step"])
+        n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"],
+                                         step=n_lstm_units["step"])
         n_fc_layers = trial.suggest_int("n_fc_layers", n_fc_layers["min"], n_fc_layers["max"], step=n_fc_layers["step"])
         n_fc_units = trial.suggest_int("n_fc_units", n_fc_units["min"], n_fc_units["max"], step=n_fc_units["step"])
         dropout_prob = trial.suggest_float("dropout_prob", dropout_p["min"], dropout_p["max"], step=dropout_p["step"])
@@ -196,8 +186,13 @@ class LSTM:
         score = model.evaluate(x_val, y_val)
         return score[0]
 
-    def start_tuning(self, n_trials, hyperparameters):
+    def tune(self, n_trials, hyperparameters):
         self.__hyperparameters = hyperparameters
         study = optuna.create_study()
         study.optimize(self.__objective, n_trials=n_trials)
         print(study.best_params)
+        return study.best_params
+
+# {'n_lstm_units': 368, 'n_fc_layers': 2, 'n_fc_width': 512, 'dropout_prob': 0.4}
+# {'n_lstm_units': 480, 'n_fc_layers': 1, 'n_fc_width': 656, 'dropout_prob': 0.7000000000000001,
+# 'lr': 0.0008575362871413658}

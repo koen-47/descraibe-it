@@ -36,14 +36,15 @@ def start_prompts():
 
 
 dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, val_split=0.2, shuffle=True)
-glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt", dimensionality=100)
+# glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt", dimensionality=100)
 # glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
 # glove = GloVeEmbedding(file_path=None, dimensionality=100)
-model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
+# model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
 #
 # # model.start_tuning()
-model.train()
+# model.train()
 
+model = kNN(dataset)
 
 # dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, shuffle=True)
 
