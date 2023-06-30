@@ -5,12 +5,25 @@ from data.Dataset import Dataset
 from data.GloVeEmbedding import GloVeEmbedding
 from models.LSTM import LSTM
 from models.kNN import kNN
+from models.SVM import SVM
 
 
 class TestModelExperimentation(unittest.TestCase):
     def setUp(self) -> None:
         self.data_filepath = f"{os.path.dirname(__file__)}/../data/saved"
         self.embedding_filepath = f"{os.path.dirname(__file__)}/../data/embeddings"
+
+    def __get_datasets(self):
+        pipeline1 = ["make_lowercase", "expand_contractions", "clean_text"]
+        pipeline2 = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
+        pipeline3 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
+        dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline1, drop_duplicates=True)
+        dataset2 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline2, drop_duplicates=True)
+        dataset3 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline3, drop_duplicates=True)
+        return dataset1, dataset2, dataset3
 
     def test_fit_lstm(self):
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
@@ -60,16 +73,24 @@ class TestModelExperimentation(unittest.TestCase):
         model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_knn.png")
 
     def test_tune_knn(self):
-        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
-        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        model = kNN(dataset)
         hyperparameters = {
             "n_neighbors": {"min": 1, "max": 50, "step": 1},
             "weights": ["uniform", "distance"],
-            "algorithm": ["auto", "kd_tree", "ball_tree"],
             "p": [1, 2]
         }
 
-        best_params = model.tune(n_trials=10, hyperparameters=hyperparameters)
-        print(best_params)
+        optimal = []
+        for dataset in self.__get_datasets():
+            model = kNN(dataset)
+            optimal_params = model.tune(n_trials=2, hyperparameters=hyperparameters)
+            optimal.append(optimal_params)
+        print(optimal)
+
+    def test_svm(self):
+        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        model = SVM(dataset)
+        model.fit(params={})
+        model.evaluate()
+        model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_svm.png")
