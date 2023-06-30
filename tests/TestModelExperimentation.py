@@ -65,9 +65,11 @@ class TestModelExperimentation(unittest.TestCase):
 
         model = LSTM(dataset, embedding=glove, params=params)
         scores, incorrect_df = model.cross_validate(n_splits=2, return_incorrect=True)
-        print(len(incorrect_df) / len(dataset.get_full_dataset()))
-        print(scores[0])
-        print(1 - scores[0])
+        incorrect_df.to_csv("./incorrect_df_test.csv", index_label=False, index=False)
+
+        # print(len(incorrect_df) / len(dataset.get_full_dataset()))
+        # print(scores[0])
+        # print(1 - scores[0])
 
     def test_tune_lstm(self):
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
