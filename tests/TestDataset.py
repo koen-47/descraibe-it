@@ -12,3 +12,8 @@ class TestDataset(unittest.TestCase):
         pipeline = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        cv = dataset.get_cv_split(n_splits=4)
+        print(cv)
+        for split in cv:
+            print(len(split["train"]))
+            print(len(split["test"]))

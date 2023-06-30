@@ -153,7 +153,7 @@ class LSTM(Model):
             incorrect_df = pd.DataFrame()
             for df in [t[4] for t in total]:
                 incorrect_df = pd.concat([incorrect_df, df], ignore_index=True)
-            return avg + [incorrect_df]
+            return avg, incorrect_df
         return avg
 
     def plot_confusion_matrix(self):
