@@ -16,16 +16,16 @@ class IF:
         self.__vectorizer = TfidfVectorizer()
 
         print("Fitting vectorizer...")
-        X = self.__vectorizer.fit_transform(self.__dataset.data["description"])
+        X = self.__vectorizer.fit_transform(self.__dataset.__data["description"])
         target_label = 1
-        instances_for_label = X[np.array(self.__dataset.data["label"]) == target_label]
+        instances_for_label = X[np.array(self.__dataset.__data["label"]) == target_label]
         print(instances_for_label)
 
         label_encoder = LabelEncoder()
         label_encoder.classes_ = np.load("./models/saved/labels.npy", allow_pickle=True)
-        classes = np.unique(self.__dataset.data["label"])
+        classes = np.unique(self.__dataset.__data["label"])
         for label in classes[:1]:
-            class_instances = X[self.__dataset.data["label"] == label]
+            class_instances = X[self.__dataset.__data["label"] == label]
             original_texts = self.__vectorizer.inverse_transform(class_instances)
             print(dict(zip(original_texts, label)))
             

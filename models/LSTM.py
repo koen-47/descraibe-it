@@ -42,7 +42,7 @@ class LSTM(Model):
     def __init__(self, dataset, embedding, save_tokenizer=None):
         self.__dataset = dataset
         self.__train = dataset.train
-        self.__val = dataset.val
+        self.__val = None if dataset.val is None else dataset.val
         self.__test = dataset.test
         self.__embedding = embedding
         self.__tokenizer = Tokenizer()
@@ -55,7 +55,7 @@ class LSTM(Model):
             with io.open(save_tokenizer, 'w+', encoding='utf-8') as f:
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
-    def fit(self, params):
+    def fit(self, params, use_full_dataset=False):
         x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
         y_train = np.array(self.__train["label"])
@@ -80,15 +80,20 @@ class LSTM(Model):
         optimizer = Adam()
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
 
-        x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
-        x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
-        y_val = np.array(self.__val["label"])
         scheduler = self.__get_lr_scheduler(params["scheduler"])
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=params["early_stopping"]["verbose"],
                            patience=params["early_stopping"]["patience"])
-        model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], validation_data=(x_val, y_val),
-                  epochs=params["misc"]["epochs"], verbose=1,
-                  callbacks=[es, scheduler])
+
+        if not use_full_dataset:
+            x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
+            x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
+            y_val = np.array(self.__val["label"])
+            model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], validation_data=(x_val, y_val),
+                      epochs=params["misc"]["epochs"], verbose=1,
+                      callbacks=[es, scheduler])
+        else:
+            model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], epochs=params["misc"]["epochs"],
+                      verbose=1, callbacks=[es, scheduler])
         model.save(params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
 

@@ -5,6 +5,7 @@ from nltk.corpus import stopwords
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import KFold
 
 from .PreprocessingPipeline import PreprocessingPipeline
 
@@ -27,20 +28,20 @@ class Dataset:
         self.test_split = test_split
         self.val_split = val_split
         self.shuffle = shuffle
-        # self.remove_stopwords = remove_stopwords
 
-        self.data = pd.read_csv(csv_path)
+        self.__data = pd.read_csv(csv_path)
 
         pipeline = pipeline if pipeline is not None else ["make_lowercase", "expand_contractions",
                                                           "clean_text", "remove_duplicates"]
-        self.data = PreprocessingPipeline(self.data, pipeline=pipeline).apply()
+        self.__data = PreprocessingPipeline(self.__data, pipeline=pipeline).apply()
 
-        self.data["label"] = self.__encode_labels(self.data["label"])
+        self.__data["label"] = self.__encode_labels(self.__data["label"])
 
         if val_split > 0.:
             self.train, self.val, self.test = self.__train_test_val_split()
         else:
             self.train, self.test = self.__train_test_val_split()
+            self.val = None
 
         if drop_duplicates:
             self.train = self.train.drop_duplicates(keep="first").reset_index(drop=True)
@@ -49,8 +50,8 @@ class Dataset:
                 self.val = self.val.drop_duplicates(keep="first").reset_index(drop=True)
 
     def __train_test_val_split(self):
-        train = self.data[:int(len(self.data) * (1 - self.test_split))]
-        test = self.data[len(train):]
+        train = self.__data[:int(len(self.__data) * (1 - self.test_split))]
+        test = self.__data[len(train):]
         if self.val_split > 0:
             temp = train
             train = train[:int(len(train) * (1 - self.val_split))]
@@ -63,6 +64,11 @@ class Dataset:
         encoded = self.label_encoder.fit_transform(labels)
         np.save(f"{os.path.dirname(__file__)}/../models/saved/labels.npy", self.label_encoder.classes_)
         return encoded
+
+    def get_cv_split(self, n_splits):
+        data = self.get_full_dataset()
+        kf = KFold(n_splits=n_splits)
+        return [{"train": data.iloc[split[0]], "test": data.iloc[split[1]]} for split in list(kf.split(data))]
 
     def clean_text(self, text):
         """
@@ -98,11 +104,16 @@ class Dataset:
         :return: Vocabulary size
         """
         unique_words = []
-        for row in self.data["description"]:
+        for row in self.__data["description"]:
             for word in row.split(" "):
                 if word not in unique_words and word != " " and word != "":
                     unique_words.append(word)
         return len(unique_words)
+
+    def get_full_dataset(self):
+        if self.val is not None:
+            return pd.concat([self.train, self.val, self.test], ignore_index=True)
+        return pd.concat([self.train, self.test], ignore_index=True)
 
     def get_all_words(self):
         """
@@ -110,7 +121,7 @@ class Dataset:
         :return: Returns all the words that are not whitespaces or empty spaces in the full data.
         """
         words = []
-        for row in self.data["description"]:
+        for row in self.__data["description"]:
             for word in row.split(" "):
                 if word != " " and word != "":
                     words.append(word)
@@ -122,11 +133,11 @@ class Dataset:
         :param label: Array of strings that contains the encoded labels as integers.
         :return: Returns an array of strings that contains the decoded labels as strings.
         """
-        return self.__label_encoder.inverse_transform(label)
+        return self.label_encoder.inverse_transform(label)
 
     def __str__(self):
         """
         Class function used for printing.
         :return: String representation of the Pandas Dataframe containing the full data.
         """
-        return str(self.data)
+        return str(self.__data)

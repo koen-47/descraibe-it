@@ -21,7 +21,7 @@ class SVM(Model):
         self.__val = dataset.val
         self.__test = dataset.test
         self.__vectorizer = TfidfVectorizer()
-        self.__vectorizer.fit_transform(self.__dataset.data["description"])
+        self.__vectorizer.fit_transform(self.__dataset.__data["description"])
         self.__model = None
         self.__hyperparameters = {}
 

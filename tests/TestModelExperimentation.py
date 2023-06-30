@@ -68,9 +68,16 @@ class TestModelExperimentation(unittest.TestCase):
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
         model = kNN(dataset)
-        model.fit(params={})
-        model.evaluate()
-        model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_knn.png")
+        model.fit(params={"n_neighbors": 8})
+        print(model.evaluate())
+        model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
+
+    def test_cross_validate_knn(self):
+        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        model = kNN(dataset)
+        model.cross_validate(params={"n_neighbors": 8}, n_splits=3)
 
     def test_tune_knn(self):
         hyperparameters = {

@@ -19,8 +19,8 @@ class LOF:
         label_encoder.classes_ = np.load("./models/saved/labels.npy", allow_pickle=True)
 
         vectorizer = TfidfVectorizer()
-        X = vectorizer.fit_transform(self.__dataset.data["description"])
-        labels = self.__dataset.data["label"]
+        X = vectorizer.fit_transform(self.__dataset.__data["description"])
+        labels = self.__dataset.__data["label"]
         unique_labels = np.unique(labels)
 
         for label in unique_labels[:1]:
