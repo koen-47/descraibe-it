@@ -39,7 +39,7 @@ np.random.seed(42)
 
 
 class LSTM(Model):
-    def __init__(self, dataset, embedding, save_tokenizer=None):
+    def __init__(self, dataset, embedding, params, save_tokenizer=None):
         self.__dataset = dataset
         self.__train = dataset.train
         self.__val = None if dataset.val is None else dataset.val
@@ -48,14 +48,15 @@ class LSTM(Model):
         self.__tokenizer = Tokenizer()
         self.__tokenizer.fit_on_texts(self.__train["description"])
         self.__model = None
-        self.__hyperparameters = {}
+        self.__param_space = {}
+        self.__params = params
 
         if save_tokenizer is not None:
             tokenizer_json = self.__tokenizer.to_json()
             with io.open(save_tokenizer, 'w+', encoding='utf-8') as f:
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
-    def fit(self, params, use_full_dataset=False):
+    def fit(self, x_train=None, y_train=None):
         x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
         y_train = np.array(self.__train["label"])
@@ -65,12 +66,12 @@ class LSTM(Model):
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
-        for lstm_layer in params["lstm_layers"]:
+        for lstm_layer in self.__params["lstm_layers"]:
             units = lstm_layer["units"]
             bidirectional = lstm_layer["bidirectional"]
             layer = Bidirectional(LSTMLayer(units)) if bidirectional else LSTMLayer(units)
             model.add(layer)
-        for fc_layer in params["fc_layers"]:
+        for fc_layer in self.__params["fc_layers"]:
             units = fc_layer["units"]
             dropout_p = fc_layer["dropout_p"]
             model.add(Dense(units, activation="relu"))
@@ -80,21 +81,16 @@ class LSTM(Model):
         optimizer = Adam()
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
 
-        scheduler = self.__get_lr_scheduler(params["scheduler"])
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=params["early_stopping"]["verbose"],
-                           patience=params["early_stopping"]["patience"])
-
-        if not use_full_dataset:
-            x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
-            x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
-            y_val = np.array(self.__val["label"])
-            model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], validation_data=(x_val, y_val),
-                      epochs=params["misc"]["epochs"], verbose=1,
-                      callbacks=[es, scheduler])
-        else:
-            model.fit(x_train, y_train, batch_size=params["misc"]["batch_size"], epochs=params["misc"]["epochs"],
-                      verbose=1, callbacks=[es, scheduler])
-        model.save(params["misc"]["save_filepath"], save_format="h5")
+        scheduler = self.__get_lr_scheduler(self.__params["scheduler"])
+        es = EarlyStopping(monitor='val_loss', mode='min', verbose=self.__params["early_stopping"]["verbose"],
+                           patience=self.__params["early_stopping"]["patience"])
+        x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
+        x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
+        y_val = np.array(self.__val["label"])
+        model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"], validation_data=(x_val, y_val),
+                  epochs=self.__params["misc"]["epochs"], verbose=1,
+                  callbacks=[es, scheduler])
+        model.save(self.__params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
 
     def __get_lr_scheduler(self, params):
@@ -113,28 +109,52 @@ class LSTM(Model):
         pred_label = self.__dataset.decode_label(pred_probs.argmax(axis=-1))
         return pred_label, pred_max_prob, pred_probs
 
-    def evaluate(self, get_misclassifications=True):
-        label_encoder = self.__dataset.label_encoder
-        x_test = self.__tokenizer.texts_to_sequences(self.__test["description"])
-        x_test = pad_sequences(x_test, maxlen=self.__embedding.dimensionality)
-        y_pred = self.__model.predict(x_test)
+    def evaluate(self, x_test=None, y_test=None, use_val=False, return_incorrect=False):
+        if x_test is None and y_test is None:
+            y_test = self.__val["label"] if use_val else self.__test["label"]
+            x_test = self.__val["description"] if use_val else self.__test["description"]
 
-        x_test = self.__test["description"]
+        label_encoder = self.__dataset.label_encoder
+        x_test_tok = self.__tokenizer.texts_to_sequences(x_test)
+        x_test_tok = pad_sequences(x_test_tok, maxlen=self.__embedding.dimensionality)
+
+        y_pred = self.__model.predict(x_test_tok)
         y_pred_label = label_encoder.inverse_transform([np.argmax(pred) for pred in y_pred])
-        y_pred_prob = [np.max(pred) for pred in y_pred]
-        y_test = label_encoder.inverse_transform(self.__test["label"])
+        y_test = label_encoder.inverse_transform(y_test)
 
         accuracy = accuracy_score(y_test, y_pred_label)
         precision = precision_score(y_test, y_pred_label, average='micro')
         recall = recall_score(y_test, y_pred_label, average='micro')
         f1 = f1_score(y_test, y_pred_label, average='micro')
 
-        if get_misclassifications:
+        if return_incorrect:
+            y_pred_prob = [np.max(pred) for pred in y_pred]
             incorrect = [(desc, pred, prob, actual) for desc, pred, prob, actual in
                          zip(x_test, y_pred_label, y_pred_prob, y_test) if pred != actual]
             incorrect_df = pd.DataFrame(incorrect, columns=["description", "predicted", "probability", "actual"])
             return accuracy, precision, recall, f1, incorrect_df
         return accuracy, precision, recall, f1
+
+    def cross_validate(self, n_splits, return_incorrect=False):
+        cv = self.__dataset.get_cv_split(n_splits=n_splits)
+        total = []
+        for data in cv:
+            x_train = data["train"]["description"]
+            y_train = data["train"]["label"]
+            x_test = data["test"]["description"]
+            y_test = data["test"]["label"]
+            model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
+            model.fit(x_train, y_train)
+            results = model.evaluate(x_test, y_test, return_incorrect=return_incorrect)
+            total.append(results)
+        scores = np.array([t[:4] for t in total])
+        avg = np.average(scores, axis=0)
+        if return_incorrect:
+            incorrect_df = pd.DataFrame()
+            for df in [t[4] for t in total]:
+                incorrect_df = pd.concat([incorrect_df, df], ignore_index=True)
+            return avg + [incorrect_df]
+        return avg
 
     def plot_confusion_matrix(self):
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
@@ -154,10 +174,10 @@ class LSTM(Model):
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
-        n_lstm_units = self.__hyperparameters["n_lstm_units"]
-        n_fc_layers = self.__hyperparameters["n_fc_layers"]
-        n_fc_units = self.__hyperparameters["n_fc_units"]
-        dropout_p = self.__hyperparameters["dropout_p"]
+        n_lstm_units = self.__param_space["n_lstm_units"]
+        n_fc_layers = self.__param_space["n_fc_layers"]
+        n_fc_units = self.__param_space["n_fc_units"]
+        dropout_p = self.__param_space["dropout_p"]
 
         n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"],
                                          step=n_lstm_units["step"])
@@ -192,7 +212,7 @@ class LSTM(Model):
         return score[0]
 
     def tune(self, n_trials, hyperparameters):
-        self.__hyperparameters = hyperparameters
+        self.__param_space = hyperparameters
         study = optuna.create_study()
         study.optimize(self.__objective, n_trials=n_trials)
         print(study.best_params)

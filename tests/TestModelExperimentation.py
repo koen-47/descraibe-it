@@ -36,18 +36,36 @@ class TestModelExperimentation(unittest.TestCase):
             "fc_layers": [{"units": 656, "dropout_p": 0.7}],
             "early_stopping": {"patience": 10, "verbose": 1},
             "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 50},
-            "misc": {"epochs": 1, "lr": 0.0085, "batch_size": 64, "save_filepath": "./models/saved/lstm.h5"}
+            "misc": {"epochs": 1, "lr": 0.0085, "batch_size": 128, "save_filepath": "./models/saved/lstm.h5"}
         }
 
-        model = LSTM(dataset, embedding=glove)
-        model.fit(params)
-        accuracy, precision, recall, f1, incorrect_df = model.evaluate()
+        model = LSTM(dataset, embedding=glove, params=params)
+        model.fit()
+        accuracy, precision, recall, f1, incorrect_df = model.evaluate(return_incorrect=True)
 
         print(f"Accuracy: {accuracy}")
         print(f"Precision: {precision}")
         print(f"Recall: {recall}")
         print(f"F1 score: {f1}")
         print(f"Misclassification ratio: {len(incorrect_df) / len(dataset.test)}")
+
+    def test_cross_validate_lstm(self):
+        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
+
+        params = {
+            "lstm_layers": [{"bidirectional": True, "units": 480}],
+            "fc_layers": [{"units": 656, "dropout_p": 0.7}],
+            "early_stopping": {"patience": 10, "verbose": 1},
+            "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 50},
+            "misc": {"epochs": 1, "lr": 0.0085, "batch_size": 128, "save_filepath": "./models/saved/lstm.h5"}
+        }
+
+        model = LSTM(dataset, embedding=glove, params=params)
+        scores = model.cross_validate(n_splits=2, return_incorrect=True)
+        print(scores)
 
     def test_tune_lstm(self):
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)

@@ -3,11 +3,11 @@ from abc import ABC, abstractmethod
 
 class Model(ABC):
     @abstractmethod
-    def fit(self, params):
+    def fit(self, x_train, y_train):
         pass
 
     @abstractmethod
-    def evaluate(self):
+    def evaluate(self, x_test, y_test):
         pass
 
     @abstractmethod
