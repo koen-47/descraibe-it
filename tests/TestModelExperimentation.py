@@ -66,6 +66,9 @@ class TestModelExperimentation(unittest.TestCase):
         model = kNN(dataset)
         hyperparameters = {
             "n_neighbors": {"min": 1, "max": 50, "step": 1},
+            "weights": ["uniform", "distance"],
+            "algorithm": ["auto", "kd_tree", "ball_tree"],
+            "p": [1, 2]
         }
 
         best_params = model.tune(n_trials=10, hyperparameters=hyperparameters)

@@ -65,8 +65,15 @@ class kNN(Model):
 
     def __create_model(self, trial):
         n_neighbors = self.__hyperparameters["n_neighbors"]
+        weights = self.__hyperparameters["weights"]
+        algorithm = self.__hyperparameters["algorithm"]
+        p = self.__hyperparameters["p"]
+
         n_neighbors = trial.suggest_int("n_neighbors", n_neighbors["min"], n_neighbors["max"], step=n_neighbors["step"])
-        model = KNeighborsClassifier(n_neighbors=n_neighbors)
+        weights = trial.suggest_categorical("weights", weights)
+        algorithm = trial.suggest_categorical("algorithm", algorithm)
+        p = trial.suggest_categorical("p", p)
+        model = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights, algorithm=algorithm, p=p)
         return model
 
     def __objective(self, trial):
