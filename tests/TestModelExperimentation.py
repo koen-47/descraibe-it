@@ -1,6 +1,8 @@
 import os.path
 import unittest
 
+import pandas as pd
+
 from data.Dataset import Dataset
 from data.GloVeEmbedding import GloVeEmbedding
 from models.LSTM import LSTM
@@ -95,12 +97,27 @@ class TestModelExperimentation(unittest.TestCase):
         print(model.evaluate())
         model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
 
+    def test_fit_knn_small(self):
+        data = pd.read_csv("../data/saved/descriptions_25.csv").sample(frac=1).reset_index(drop=True)
+        train_data = data[:12000]
+        val_data = data[12000:15000]
+        test_data = data[15000:20000]
+        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        dataset = Dataset(train_data=train_data, val_data=val_data, test_data=test_data, pipeline=pipeline,
+                          drop_duplicates=True)
+        params = {"n_neighbors": 16, "weights": "distance", "p": 2}
+        model = kNN(dataset, params)
+        model.fit()
+        print(model.evaluate(use_val=True))
+        model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
+
     def test_cross_validate_knn(self):
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        model = kNN(dataset)
-        model.cross_validate(params={"n_neighbors": 8}, n_splits=3)
+        params = {"n_neighbors": 8}
+        model = kNN(dataset, params)
+        model.cross_validate(n_splits=3)
 
     def test_tune_knn(self):
         hyperparameters = {
@@ -133,7 +150,15 @@ class TestModelExperimentation(unittest.TestCase):
         params = {}
         model = SVM(dataset, params)
         hyperparameters = {
-            "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100.]},
-            "gamma": {"min": 0.01, "max": 10, "step": [0.01, 0.1, 1., 10.]},
+            "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100., 1000.]},
+            "gamma": {"min": 0.01, "max": 10, "step": [0.0001, 0.001, 0.01, 0.1, 1., 10.]},
         }
-        model.tune(n_trials=10, n_jobs=10, hyperparameters=hyperparameters)
+        model.tune(n_trials=10, n_jobs=10, param_space=hyperparameters, method="gridsearch")
+
+    def test_cross_validate_svm(self):
+        pipeline = ["make_lowercase", "expand_contractions" "clean_text"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        params = {"C": 10., "gamma": 0.1}
+        model = SVM(dataset, params)
+        model.cross_validate(n_splits=3)

@@ -5,12 +5,13 @@ import numpy as np
 import optuna
 from matplotlib import pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, anneal
 
+from data.Dataset import Dataset
 from models.Model import Model
 
 
@@ -26,20 +27,17 @@ class SVM(Model):
         self.__params = params
         self.__param_space = {}
 
-    def fit(self, x_train=None, y_train=None):
-        x_train = self.__train["description"] if x_train is None else x_train
-        y_train = self.__train["label"] if y_train is None else y_train
-        x_train = self.__vectorizer.transform(x_train)
+    def fit(self):
+        x_train = self.__vectorizer.transform(self.__train["description"])
+        y_train = self.__train["label"]
 
-        model = SVC()
+        model = SVC(C=self.__params["C"], gamma=self.__params["gamma"])
         model.fit(x_train, y_train)
-
         self.__model = model
 
-    def evaluate(self, x_test=None, y_test=None, use_val=False):
-        if x_test is None and y_test is None:
-            y_test = self.__val["label"] if use_val else self.__test["label"]
-            x_test = self.__val["description"] if use_val else self.__test["description"]
+    def evaluate(self, use_val=False):
+        y_test = self.__val["label"] if use_val else self.__test["label"]
+        x_test = self.__val["description"] if use_val else self.__test["description"]
 
         x_test = self.__vectorizer.transform(x_test)
         y_pred = self.__model.predict(x_test)
@@ -54,14 +52,13 @@ class SVM(Model):
         cv = self.__dataset.get_cv_split(n_splits=n_splits)
         total = []
         for data in cv:
-            x_train = data["train"]["description"]
-            y_train = data["train"]["label"]
-            x_test = data["test"]["description"]
-            y_test = data["test"]["label"]
-            model = SVM(self.__dataset, self.__params)
-            model.fit(x_train, y_train)
-            results = model.evaluate(x_test, y_test)
-            print(results)
+            train_data = data["train"]
+            test_data = data["test"]
+            pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
+            dataset = Dataset(train_data=train_data, test_data=test_data, pipeline=pipeline, drop_duplicates=True)
+            model = SVM(dataset, self.__params)
+            model.fit()
+            results = model.evaluate()
             total.append(results)
         total = np.array(total)
         return np.average(total, axis=0)
@@ -109,8 +106,19 @@ class SVM(Model):
         accuracy = accuracy_score(y_val, y_pred)
         return accuracy
 
-    def tune(self, n_trials, n_jobs, hyperparameters):
-        self.__param_space = hyperparameters
-        study = optuna.create_study(direction="maximize")
-        study.optimize(self.__objective, n_trials=n_trials, n_jobs=n_jobs)
-        return study.best_params
+    def __gridsearch(self, param_space):
+        x_train = self.__train["description"]
+        y_train = self.__train["label"]
+        x_train = self.__vectorizer.transform(x_train)
+        param_grid = {name: param["step"] for name, param in param_space.items()}
+        grid = GridSearchCV(SVC(), param_grid, refit=True, verbose=3)
+        grid.fit(x_train, y_train)
+        return grid.best_params_
+
+    def tune(self, n_trials, n_jobs, param_space, method="bayesian"):
+        self.__param_space = param_space
+        if method == "bayesian":
+            study = optuna.create_study(direction="maximize")
+            study.optimize(self.__objective, n_trials=n_trials, n_jobs=n_jobs)
+            return study.best_params
+        return self.__gridsearch(param_space)

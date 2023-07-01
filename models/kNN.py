@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_sc
 from sklearn.neighbors import KNeighborsClassifier
 from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, anneal
 
+from data.Dataset import Dataset
 from models.Model import Model
 
 
@@ -25,20 +26,17 @@ class kNN(Model):
         self.__params = params
         self.__param_space = {}
 
-    def fit(self, x_train=None, y_train=None):
-        x_train = self.__train["description"] if x_train is None else x_train
-        y_train = self.__train["label"] if y_train is None else y_train
-        x_train = self.__vectorizer.transform(x_train)
+    def fit(self):
+        x_train = self.__vectorizer.transform(self.__train["description"])
+        y_train = self.__train["label"]
 
         model = KNeighborsClassifier(n_neighbors=self.__params["n_neighbors"])
         model.fit(x_train, y_train)
-
         self.__model = model
 
-    def evaluate(self, x_test=None, y_test=None, use_val=False):
-        if x_test is None and y_test is None:
-            y_test = self.__val["label"] if use_val else self.__test["label"]
-            x_test = self.__val["description"] if use_val else self.__test["description"]
+    def evaluate(self, use_val=False):
+        y_test = self.__val["label"] if use_val else self.__test["label"]
+        x_test = self.__val["description"] if use_val else self.__test["description"]
 
         x_test = self.__vectorizer.transform(x_test)
         y_pred = self.__model.predict(x_test)
@@ -53,13 +51,13 @@ class kNN(Model):
         cv = self.__dataset.get_cv_split(n_splits=n_splits)
         total = []
         for data in cv:
-            x_train = data["train"]["description"]
-            y_train = data["train"]["label"]
-            x_test = data["test"]["description"]
-            y_test = data["test"]["label"]
-            model = kNN(self.__dataset, self.__params)
-            model.fit(x_train, y_train)
-            results = model.evaluate(x_test, y_test)
+            train_data = data["train"]
+            test_data = data["test"]
+            pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
+            dataset = Dataset(train_data=train_data, test_data=test_data, pipeline=pipeline, drop_duplicates=True)
+            model = kNN(dataset, self.__params)
+            model.fit()
+            results = model.evaluate()
             print(results)
             total.append(results)
         total = np.array(total)

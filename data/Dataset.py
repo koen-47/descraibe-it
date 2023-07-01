@@ -15,7 +15,8 @@ class Dataset:
     Class to handle all necessary functionality and data handling related to the training, test and validation data.
     """
 
-    def __init__(self, csv_path, test_split, pipeline=None, val_split=0., shuffle=False, drop_duplicates=False):
+    def __init__(self, csv_path=None, train_data=None, val_data=None, test_data=None, test_split=0., pipeline=None,
+                 val_split=0., shuffle=False, drop_duplicates=False, encode_labels=True, random_state=42):
         """
         Constructor for the Dataset class.
         :param csv_path: Path to the CSV file that contains all the data.
@@ -25,36 +26,60 @@ class Dataset:
         :param remove_stopwords: Boolean to determine if stopwords (e.g., 'a', 'the', etc.) should be removed during
         preprocessing.
         """
-        self.test_split = test_split
-        self.val_split = val_split
-        self.shuffle = shuffle
+        self.__test_split = test_split
+        self.__val_split = val_split
+        self.__shuffle = shuffle
 
-        self.__data = pd.read_csv(csv_path)
+        if test_data is not None and test_split > 0.:
+            raise ValueError("Test split cannot be set because test data has been defined.")
+        if val_data is not None and val_split > 0.:
+            raise ValueError("Validation split cannot be set because validation data has been defined.")
+        if train_data is not None and shuffle is True:
+            raise ValueError("Unable to shuffle training data because training data is defined.")
+        if (train_data is not None and test_data is None) or (train_data is None and test_data is not None):
+            raise ValueError("Both training and test data need to be defined.")
+        if (train_data is not None or val_data is not None or test_data is not None) and csv_path is not None:
+            raise ValueError("Unable to define dataset .csv filepath while data is defined.")
 
-        pipeline = pipeline if pipeline is not None else ["make_lowercase", "expand_contractions",
-                                                          "clean_text", "remove_duplicates"]
-        self.__data = PreprocessingPipeline(self.__data, pipeline=pipeline).apply()
-
-        self.__data["label"] = self.__encode_labels(self.__data["label"])
-
-        if val_split > 0.:
-            self.train, self.val, self.test = self.__train_test_val_split()
+        pipeline = pipeline if pipeline is not None else ["make_lowercase", "expand_contractions", "clean_text",
+                                                          "remove_duplicates"]
+        if train_data is None and val_data is None and test_data is None:
+            self.__data = pd.read_csv(csv_path)
+            self.__data = PreprocessingPipeline(self.__data, pipeline=pipeline).apply()
+            self.__data["label"] = self.__encode_labels(self.__data["label"]) if encode_labels else self.__data["label"]
+            if self.__shuffle:
+                self.__data = self.__data.sample(frac=1).reset_index(drop=True)
+            if val_split > 0.:
+                self.train, self.val, self.test = self.__train_test_val_split()
+            else:
+                self.train, self.test = self.__train_test_val_split()
+                self.val = None
         else:
-            self.train, self.test = self.__train_test_val_split()
-            self.val = None
+            self.train = PreprocessingPipeline(train_data, pipeline=pipeline).apply()
+            self.test = PreprocessingPipeline(test_data, pipeline=pipeline).apply()
+            if val_data is not None:
+                self.val = PreprocessingPipeline(val_data, pipeline=pipeline).apply()
+            else:
+                self.val = None
+            if encode_labels:
+                self.__encode_labels(self.get_full_dataset()["label"])
+                self.train["label"] = self.label_encoder.transform(self.train["label"])
+                self.test["label"] = self.label_encoder.transform(self.test["label"])
+                if val_data is not None:
+                    self.val["label"] = self.label_encoder.transform(self.val["label"])
 
         if drop_duplicates:
             self.train = self.train.drop_duplicates(keep="first").reset_index(drop=True)
             self.test = self.test.drop_duplicates(keep="first").reset_index(drop=True)
-            if self.val_split > 0.:
+            if self.__val_split > 0.:
                 self.val = self.val.drop_duplicates(keep="first").reset_index(drop=True)
 
     def __train_test_val_split(self):
-        train = self.__data[:int(len(self.__data) * (1 - self.test_split))]
+        train = self.__data[:int(len(self.__data) * (1 - self.__test_split))]
         test = self.__data[len(train):]
-        if self.val_split > 0:
+        if self.__val_split > 0:
             temp = train
-            train = train[:int(len(train) * (1 - self.val_split))]
+            train = train[:int(len(train) * (1 - self.__val_split))]
             val = temp[len(train):]
             return train, test, val
         return train, test
