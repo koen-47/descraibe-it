@@ -11,10 +11,10 @@ import tensorflow
 import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.preprocessing.text import Tokenizer
-    from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, TextVectorization, Bidirectional, Dropout, BatchNormalization, LeakyReLU
-from keras.layers import Bidirectional
+from keras.layers import Bidirectional, LayerNormalization
 from tensorflow.keras.layers import LSTM as LSTMLayer
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import CosineDecay
@@ -75,6 +75,7 @@ class LSTM(Model):
             bidirectional = lstm_layer["bidirectional"]
             layer = Bidirectional(LSTMLayer(units)) if bidirectional else LSTMLayer(units)
             model.add(layer)
+            model.add(LayerNormalization())
         for fc_layer in self.__params["fc_layers"]:
             units = fc_layer["units"]
             dropout_p = fc_layer["dropout_p"]

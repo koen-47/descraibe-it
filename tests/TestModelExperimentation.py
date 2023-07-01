@@ -26,17 +26,17 @@ class TestModelExperimentation(unittest.TestCase):
         return dataset1, dataset2, dataset3
 
     def test_fit_lstm(self):
-        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
+        glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.840B.300d.txt", dimensionality=300)
 
         params = {
             "lstm_layers": [{"bidirectional": True, "units": 480}],
             "fc_layers": [{"units": 656, "dropout_p": 0.7}],
             "early_stopping": {"patience": 10, "verbose": 1},
             "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 50},
-            "misc": {"epochs": 1, "lr": 0.0085, "batch_size": 128, "save_filepath": "./models/saved/lstm.h5"}
+            "misc": {"epochs": 10000, "lr": 0.0085, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5"}
         }
 
         model = LSTM(dataset, embedding=glove, params=params)
@@ -127,7 +127,7 @@ class TestModelExperimentation(unittest.TestCase):
         model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_svm.png")
 
     def test_tune_svm(self):
-        pipeline = ["make_lowercase", "clean_text"]
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
         params = {}
@@ -136,4 +136,4 @@ class TestModelExperimentation(unittest.TestCase):
             "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100.]},
             "gamma": {"min": 0.01, "max": 10, "step": [0.01, 0.1, 1., 10.]},
         }
-        model.tune(n_trials=10, hyperparameters=hyperparameters)
+        model.tune(n_trials=10, n_jobs=10, hyperparameters=hyperparameters)

@@ -109,8 +109,8 @@ class SVM(Model):
         accuracy = accuracy_score(y_val, y_pred)
         return accuracy
 
-    def tune(self, n_trials, hyperparameters):
+    def tune(self, n_trials, n_jobs, hyperparameters):
         self.__param_space = hyperparameters
         study = optuna.create_study(direction="maximize")
-        study.optimize(self.__objective, n_trials=n_trials)
+        study.optimize(self.__objective, n_trials=n_trials, n_jobs=n_jobs)
         return study.best_params

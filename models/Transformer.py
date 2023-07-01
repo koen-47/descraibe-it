@@ -38,7 +38,7 @@ class Transformer(Model, ABC):
 
         embed_dim = 100
         num_heads = 4
-        ff_dim = 32
+        ff_dim = 256
 
         inputs = layers.Input(shape=(maxlen,))
         embedding_layer = TokenAndPositionEmbedding(maxlen, vocab_size, embed_dim, embedding_matrix)
@@ -47,16 +47,27 @@ class Transformer(Model, ABC):
         x = transformer_block(x)
         transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim)
         x = transformer_block(x)
+        transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim)
+        x = transformer_block(x)
+        transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim)
+        x = transformer_block(x)
+        transformer_block = TransformerBlock(embed_dim, num_heads, ff_dim)
+        x = transformer_block(x)
         x = layers.GlobalAveragePooling1D()(x)
         x = layers.Dropout(0.1)(x)
-        x = layers.Dense(32, activation="relu")(x)
+        x = layers.Dense(256, activation="relu")(x)
+        x = layers.Dropout(0.1)(x)
+        x = layers.Dense(256, activation="relu")(x)
+        x = layers.Dropout(0.1)(x)
+        x = layers.Dense(256, activation="relu")(x)
         x = layers.Dropout(0.1)(x)
         outputs = layers.Dense(25, activation="softmax")(x)
 
         optimizer = Adam(learning_rate=0.0001)
         model = keras.Model(inputs=inputs, outputs=outputs)
+        print(model.summary())
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
-        history = model.fit(x_train, y_train, batch_size=128, epochs=10, validation_split=0.2)
+        history = model.fit(x_train, y_train, batch_size=128, epochs=50, validation_split=0.2)
 
     def evaluate(self, x_test, y_test):
         pass
@@ -65,6 +76,9 @@ class Transformer(Model, ABC):
         pass
 
     def plot_confusion_matrix(self):
+        pass
+
+    def tune(self, n_trials, n_jobs, hyperparameters):
         pass
 
 
