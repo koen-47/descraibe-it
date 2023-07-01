@@ -11,7 +11,7 @@ import tensorflow
 import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, TextVectorization, Bidirectional, Dropout, BatchNormalization, LeakyReLU
 from keras.layers import Bidirectional
@@ -57,9 +57,13 @@ class LSTM(Model):
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
     def fit(self, x_train=None, y_train=None):
-        x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
+        if x_train is None and y_train is None:
+            x_train = self.__train["description"]
+            y_train = self.__train["label"]
+
+        x_train = self.__tokenizer.texts_to_sequences(x_train)
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
-        y_train = np.array(self.__train["label"])
+        y_train = np.array(y_train)
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
