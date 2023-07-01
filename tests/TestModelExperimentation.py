@@ -89,8 +89,9 @@ class TestModelExperimentation(unittest.TestCase):
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        model = kNN(dataset)
-        model.fit(params={"n_neighbors": 8})
+        params = {"n_neighbors": 16, "weights": "distance", "p": 2}
+        model = kNN(dataset, params)
+        model.fit()
         print(model.evaluate())
         model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
 
@@ -116,10 +117,23 @@ class TestModelExperimentation(unittest.TestCase):
         print(optimal)
 
     def test_svm(self):
-        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        pipeline = ["make_lowercase", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        model = SVM(dataset)
-        model.fit(params={})
-        model.evaluate()
+        params = {}
+        model = SVM(dataset, params)
+        model.fit()
+        print(model.evaluate())
         model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_svm.png")
+
+    def test_tune_svm(self):
+        pipeline = ["make_lowercase", "clean_text"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        params = {}
+        model = SVM(dataset, params)
+        hyperparameters = {
+            "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100.]},
+            "gamma": {"min": 0.01, "max": 10, "step": [0.01, 0.1, 1., 10.]},
+        }
+        model.tune(n_trials=10, hyperparameters=hyperparameters)

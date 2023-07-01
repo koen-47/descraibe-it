@@ -49,7 +49,7 @@ class kNN(Model):
         f1 = f1_score(y_test, y_pred, average='micro')
         return accuracy, precision, recall, f1
 
-    def cross_validate(self, n_splits, return_incorrect=False):
+    def cross_validate(self, n_splits):
         cv = self.__dataset.get_cv_split(n_splits=n_splits)
         total = []
         for data in cv:
