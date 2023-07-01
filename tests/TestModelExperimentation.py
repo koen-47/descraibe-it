@@ -50,7 +50,7 @@ class TestModelExperimentation(unittest.TestCase):
         print(f"Misclassification ratio: {len(incorrect_df) / len(dataset.test)}")
 
     def test_cross_validate_lstm(self):
-        pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
@@ -60,11 +60,11 @@ class TestModelExperimentation(unittest.TestCase):
             "fc_layers": [{"units": 656, "dropout_p": 0.7}],
             "early_stopping": {"patience": 10, "verbose": 1},
             "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 50},
-            "misc": {"epochs": 1, "lr": 0.0085, "batch_size": 128, "save_filepath": "./models/saved/lstm.h5"}
+            "misc": {"epochs": 25, "lr": 0.0085, "batch_size": 512, "save_filepath": "./models/saved/lstm.h5"}
         }
 
         model = LSTM(dataset, embedding=glove, params=params)
-        scores, incorrect_df = model.cross_validate(n_splits=2, return_incorrect=True)
+        scores, incorrect_df = model.cross_validate(n_splits=10, return_incorrect=True)
         incorrect_df.to_csv("./incorrect_df_test.csv", index_label=False, index=False)
 
         # print(len(incorrect_df) / len(dataset.get_full_dataset()))
