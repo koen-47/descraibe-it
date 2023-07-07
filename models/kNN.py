@@ -3,9 +3,10 @@ from abc import ABC
 
 import numpy as np
 import optuna
+import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, PredefinedSplit
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
 from sklearn.neighbors import KNeighborsClassifier
 from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, anneal
@@ -23,14 +24,15 @@ class kNN(Model):
         self.__vectorizer = TfidfVectorizer()
         self.__vectorizer.fit_transform(self.__dataset.get_full_dataset()["description"])
         self.__model = None
-        self.__params = params
         self.__param_space = {}
+        self.__params = params
 
     def fit(self):
         x_train = self.__vectorizer.transform(self.__train["description"])
         y_train = self.__train["label"]
 
-        model = KNeighborsClassifier(n_neighbors=self.__params["n_neighbors"])
+        model = KNeighborsClassifier(n_neighbors=self.__params["n_neighbors"], p=self.__params["p"],
+                                     metric=self.__params["metric"])
         model.fit(x_train, y_train)
         self.__model = model
 
@@ -109,8 +111,24 @@ class kNN(Model):
         accuracy = accuracy_score(y_val, y_pred)
         return accuracy
 
-    def tune(self, n_trials, hyperparameters):
-        self.__param_space = hyperparameters
-        study = optuna.create_study(direction="maximize")
-        study.optimize(self.__objective, n_trials=n_trials)
-        return study.best_params
+    def __gridsearch(self, param_space, n_jobs=1):
+        train_data = self.__train
+        val_data = self.__val
+        train_data["i"] = -1
+        val_data["i"] = 0
+        data = pd.concat([train_data, val_data])
+        pds = PredefinedSplit(test_fold=data["i"].tolist())
+        x_train = data["description"]
+        x_train = self.__vectorizer.transform(x_train)
+        y_train = np.array(data["label"])
+        grid = GridSearchCV(KNeighborsClassifier(), param_space, refit=True, verbose=3, cv=pds, n_jobs=n_jobs)
+        grid.fit(x_train, y_train)
+        return grid.best_params_
+
+    def tune(self, n_trials, n_jobs, param_space, method="bayesian"):
+        self.__param_space = param_space
+        if method == "bayesian":
+            study = optuna.create_study(direction="maximize")
+            study.optimize(self.__objective, n_trials=n_trials, n_jobs=n_jobs)
+            return study.best_params
+        return self.__gridsearch(param_space, n_jobs)

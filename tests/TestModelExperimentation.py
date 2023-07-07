@@ -120,18 +120,17 @@ class TestModelExperimentation(unittest.TestCase):
         model.cross_validate(n_splits=3)
 
     def test_tune_knn(self):
-        hyperparameters = {
-            "n_neighbors": {"min": 1, "max": 50, "step": 1},
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
+                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        params = {}
+        model = kNN(dataset, params)
+        param_space = {
+            "n_neighbors": range(1, 3),
             "weights": ["uniform", "distance"],
             "p": [1, 2]
         }
-
-        optimal = []
-        for dataset in self.__get_datasets():
-            model = kNN(dataset)
-            optimal_params = model.tune(n_trials=2, hyperparameters=hyperparameters)
-            optimal.append(optimal_params)
-        print(optimal)
+        model.tune(n_trials=10, n_jobs=10, param_space=param_space, method="gridsearch")
 
     def test_svm(self):
         pipeline = ["make_lowercase", "clean_text"]
@@ -162,3 +161,36 @@ class TestModelExperimentation(unittest.TestCase):
         params = {"C": 10., "gamma": 0.1}
         model = SVM(dataset, params)
         model.cross_validate(n_splits=3)
+
+
+class TestMultipleDatasetExperimentation(unittest.TestCase):
+    def setUp(self) -> None:
+        self.data_filepath = f"{os.path.dirname(__file__)}/../data/saved"
+        self.embedding_filepath = f"{os.path.dirname(__file__)}/../data/embeddings"
+
+    def __get_datasets(self):
+        pipeline1 = ["make_lowercase", "expand_contractions", "clean_text"]
+        pipeline2 = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
+        pipeline3 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
+        dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline1, drop_duplicates=True)
+        dataset2 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline2, drop_duplicates=True)
+        dataset3 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                           val_split=0.2, shuffle=True, pipeline=pipeline3, drop_duplicates=True)
+        return dataset1, dataset2, dataset3
+
+    def test_tune_knn(self):
+        datasets = self.__get_datasets()
+        param_space = {
+            "n_neighbors": range(1, 101),
+            "weights": ["uniform", "distance"],
+            "p": [1, 2]
+        }
+
+        for dataset in datasets:
+            model = kNN(dataset, {})
+            best_params = model.tune(n_trials=10, n_jobs=2, param_space=param_space, method="gridsearch")
+            model = kNN(dataset, best_params)
+            model.fit()
+            print(model.evaluate())
