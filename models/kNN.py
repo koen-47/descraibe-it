@@ -32,7 +32,7 @@ class kNN(Model):
         y_train = self.__train["label"]
 
         model = KNeighborsClassifier(n_neighbors=self.__params["n_neighbors"], p=self.__params["p"],
-                                     metric=self.__params["metric"])
+                                     weights=self.__params["weights"])
         model.fit(x_train, y_train)
         self.__model = model
 
@@ -121,11 +121,14 @@ class kNN(Model):
         x_train = data["description"]
         x_train = self.__vectorizer.transform(x_train)
         y_train = np.array(data["label"])
-        grid = GridSearchCV(KNeighborsClassifier(), param_space, refit=True, verbose=3, cv=pds, n_jobs=n_jobs)
+        grid = GridSearchCV(KNeighborsClassifier(), param_space, refit=True, cv=pds, n_jobs=n_jobs)
         grid.fit(x_train, y_train)
         return grid.best_params_
 
-    def tune(self, n_trials, n_jobs, param_space, method="bayesian"):
+    def tune(self, param_space, n_trials=None, n_jobs=1, method="bayesian"):
+        if method == "gridsearch" and n_trials is not None:
+            raise ValueError("n_trials must be None while performing grid search.")
+
         self.__param_space = param_space
         if method == "bayesian":
             study = optuna.create_study(direction="maximize")

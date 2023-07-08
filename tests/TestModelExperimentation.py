@@ -130,7 +130,10 @@ class TestModelExperimentation(unittest.TestCase):
             "weights": ["uniform", "distance"],
             "p": [1, 2]
         }
-        model.tune(n_trials=10, n_jobs=10, param_space=param_space, method="gridsearch")
+        best_params = model.tune(param_space, method="gridsearch")
+        model = kNN(dataset, best_params)
+        model.fit()
+        print(model.evaluate())
 
     def test_svm(self):
         pipeline = ["make_lowercase", "clean_text"]
@@ -170,7 +173,7 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
 
     def __get_datasets(self):
         pipeline1 = ["make_lowercase", "expand_contractions", "clean_text"]
-        pipeline2 = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
+        pipeline2 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords"]
         pipeline3 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
                            val_split=0.2, shuffle=True, pipeline=pipeline1, drop_duplicates=True)
@@ -188,9 +191,26 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
             "p": [1, 2]
         }
 
-        for dataset in datasets:
+        for i, dataset in enumerate(datasets):
             model = kNN(dataset, {})
-            best_params = model.tune(n_trials=10, n_jobs=2, param_space=param_space, method="gridsearch")
+            best_params = model.tune(param_space, n_jobs=1, method="gridsearch")
             model = kNN(dataset, best_params)
             model.fit()
+            print(f"Dataset {i+1}")
+            print(f"Best parameters: {best_params}")
+            print(f"Results: {model.evaluate()}")
+
+    def test_tune_svm(self):
+        datasets = self.__get_datasets()
+        param_space = {
+            "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100., 1000.]},
+            "gamma": {"min": 0.01, "max": 10, "step": [0.0001, 0.001, 0.01, 0.1, 1., 10.]},
+        }
+
+        for dataset in datasets:
+            model = SVM(dataset, {})
+            best_params = model.tune(n_trials=10, n_jobs=-1, param_space=param_space, method="gridsearch")
+            model = SVM(dataset, best_params)
+            model.fit()
             print(model.evaluate())
+
