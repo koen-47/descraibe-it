@@ -193,7 +193,7 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
 
         for i, dataset in enumerate(datasets):
             model = kNN(dataset, {})
-            best_params = model.tune(param_space, n_jobs=1, method="gridsearch")
+            best_params = model.tune(param_space, n_jobs=-1, method="gridsearch")
             model = kNN(dataset, best_params)
             model.fit()
             print(f"Dataset {i+1}")
