@@ -6,6 +6,7 @@ import random
 import optuna
 import numpy as np
 import scipy
+# scipy.test()
 import pickle
 import tensorflow
 import pandas as pd

@@ -12,15 +12,27 @@ class PromptManager:
     """
     Class to handle all functionality related to prompting ChatGPT for word descriptions.
     """
-    def __init__(self, api_key, args):
+    def __init__(self, api_key, save_path, categories_file="./data/saved/categories_25.txt"):
         """
         Constructor for PromptManager class.
         :param api_key: OpenAI API key for ChatGPT
         :param args: Dictionary of arguments used for prompting (found in main.py)
         """
-        self.api_key = api_key
+        self._api_key = api_key
         openai.key = api_key
-        self.args = args
+        self._save_path = save_path
+        self._categories_file = categories_file
+
+        self._PROMPT_INFO = {
+            "prompt_template": 'Give me <var1> <var2>unique descriptions of <var3>. Do not include the word '
+                               '"<var4>" or any of its variations in your response. Use <var5> language in your '
+                               'response.<var6>',
+            "length": [20],
+            "detail": ["very short", "short", "", "long", "very long"],
+            "complexity": ["very simple", "simple", "complex", "very complex"],
+            "prefix": ["it", "this", "a", "the", "with", ""],
+            "temperature": [0.2, 0.6, 1.0],
+        }
 
     def start_prompts(self):
         """
@@ -28,11 +40,11 @@ class PromptManager:
         Pandas DataFrame, and saves the frame to a CSV file.
         """
         df = pd.DataFrame({"description": [], "label": []})
-        categories = self.get_categories(self.args["categories_file"])
+        categories = self.get_categories(self._categories_file)
         for category in categories:
             responses = []
-            variables = [self.args["length"], self.args["detail"], self.args["complexity"], self.args["prefix"],
-                         self.args["temperature"]]
+            variables = [self._PROMPT_INFO["length"], self._PROMPT_INFO["detail"], self._PROMPT_INFO["complexity"],
+                         self._PROMPT_INFO["prefix"], self._PROMPT_INFO["temperature"]]
             variations = list(itertools.product(*variables))
             for i in tqdm(range(len(variations)), desc=f"Prompting ({category})"):
                 variation = variations[i]
@@ -45,7 +57,7 @@ class PromptManager:
             for row in responses:
                 row = pd.DataFrame({"description": row, "label": [category] * len(row)})
                 df = pd.concat([df, row], ignore_index=True)
-            df.to_csv("./data/recent/descriptions.csv", index=False)
+            df.to_csv(self._save_path, index=False)
 
     def prepare_prompt(self, entity, length=1, detail=None, complexity=None, prefix=None):
         """
@@ -57,10 +69,10 @@ class PromptManager:
         :param prefix: The word that ChatGPT should use to start its response.
         :return: Returns the formatted prompt as a string.
         """
-        template = self.args["prompt_template"]
+        template = self._PROMPT_INFO["prompt_template"]
         article = "an" if entity[0] in ["a", "e", "i", "o", "u"] else "a"
         detail = self.__prepare_prompt_detail(detail)
-        prefix = f' Start all your responses with "{prefix.capitalize()}".' if prefix is not "" else ""
+        prefix = f' Start all your responses with "{prefix.capitalize()}".' if prefix != "" else ""
         template = re.sub(f"<var1>", str(length), template)
         template = re.sub(f"<var2>", detail, template)
         template = re.sub(f"<var3>", f"{article} {entity}", template)

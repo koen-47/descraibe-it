@@ -1,7 +1,6 @@
 import os
 import re
 
-from nltk.corpus import stopwords
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -48,7 +47,7 @@ class Dataset:
             self.__data = PreprocessingPipeline(self.__data, pipeline=pipeline).apply()
             self.__data["label"] = self.__encode_labels(self.__data["label"]) if encode_labels else self.__data["label"]
             if self.__shuffle:
-                self.__data = self.__data.sample(frac=1).reset_index(drop=True)
+                self.__data = self.__data.sample(frac=1, random_state=random_state).reset_index(drop=True)
             if val_split > 0.:
                 self.train, self.val, self.test = self.__train_test_val_split()
             else:

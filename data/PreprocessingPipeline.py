@@ -9,6 +9,8 @@ import nltk
 from tqdm import tqdm
 
 nltk.download('punkt', quiet=True)
+nltk.download('punkt_tab', quiet=True)
+nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 
 class PreprocessingPipeline(ABC):
@@ -41,14 +43,14 @@ class PreprocessingPipeline(ABC):
 
     def __make_lowercase(self):
         lowercase = []
-        for sentence in self.dataset[self.feature]:
+        for sentence in tqdm(self.dataset[self.feature], desc="Converting to lowercase"):
             sentence = sentence.lower()
             lowercase.append(sentence)
         self.dataset[self.feature] = pd.Series(lowercase)
 
     def __clean_text(self):
         clean_text = []
-        for sentence in self.dataset[self.feature]:
+        for sentence in tqdm(self.dataset[self.feature], desc="Cleaning text"):
             sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
             sentence = re.sub(r'\<a href', ' ', sentence)
             sentence = re.sub(r'&amp;', '', sentence)
@@ -63,7 +65,7 @@ class PreprocessingPipeline(ABC):
     def __remove_stopwords(self):
         removed_stopwords = []
         stops = set(stopwords.words("english"))
-        for sentence in self.dataset[self.feature]:
+        for sentence in tqdm(self.dataset[self.feature], desc="Removing stopwords"):
             sentence = sentence.split()
             sentence = [w for w in sentence if not w in stops]
             sentence = " ".join(sentence)
@@ -74,7 +76,7 @@ class PreprocessingPipeline(ABC):
         with open(f"{os.path.dirname(__file__)}/preprocessing/contractions_dict.json") as file:
             contractions = json.load(file)
         expanded_contractions = []
-        for sentence in self.dataset[self.feature]:
+        for sentence in tqdm(self.dataset[self.feature], desc="Expanding contractions"):
             sentence = sentence.split()
             sentence = [contractions.get(item, item) for item in sentence]
             sentence = " ".join(sentence)

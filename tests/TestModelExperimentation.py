@@ -1,3 +1,4 @@
+import json
 import os.path
 import unittest
 
@@ -69,10 +70,6 @@ class TestModelExperimentation(unittest.TestCase):
         scores, incorrect_df = model.cross_validate(n_splits=10, return_incorrect=True)
         incorrect_df.to_csv("./incorrect_df_test.csv", index_label=False, index=False)
 
-        # print(len(incorrect_df) / len(dataset.get_full_dataset()))
-        # print(scores[0])
-        # print(1 - scores[0])
-
     def test_tune_lstm(self):
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
         dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
@@ -88,6 +85,7 @@ class TestModelExperimentation(unittest.TestCase):
         model1.tune(n_trials=25, hyperparameters=hyperparameters)
 
     def test_fit_knn(self):
+        print("adfasdf")
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
@@ -109,7 +107,7 @@ class TestModelExperimentation(unittest.TestCase):
         model = kNN(dataset, params)
         model.fit()
         print(model.evaluate(use_val=True))
-        model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
+        # model.plot_confusion_matrix(show=False, save_filepath="../visualizations/confusion_matrix_knn.png")
 
     def test_cross_validate_knn(self):
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
@@ -120,20 +118,36 @@ class TestModelExperimentation(unittest.TestCase):
         model.cross_validate(n_splits=3)
 
     def test_tune_knn(self):
-        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
-        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
-        params = {}
-        model = kNN(dataset, params)
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
+                          val_split=0.2, shuffle=True, pipeline=pipeline, drop_duplicates=True)
+        model = kNN(dataset, {})
         param_space = {
-            "n_neighbors": range(1, 3),
-            "weights": ["uniform", "distance"],
-            "p": [1, 2]
+            "n_neighbors": list(range(1, 51)),
+            "weights": ["distance", "uniform"],
+            "p": [2]
         }
-        best_params = model.tune(param_space, method="gridsearch")
+        best_params = model.tune(param_space, method="gridsearch", n_jobs=None)
         model = kNN(dataset, best_params)
         model.fit()
-        print(model.evaluate())
+
+        accuracy, precision, recall, f1_score = model.evaluate()
+        knn_results = {
+            "performance": {
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score
+            },
+            "tuning": {
+                "param_space": param_space,
+                "best_params": best_params
+            }
+        }
+
+        with open("../results/knn/knn_results.json", "w") as file:
+            json.dump(knn_results, file, indent=3)
+        model.plot_confusion_matrix(show=False, save_filepath="../results/knn/knn_confusion_matrix.png")
 
     def test_svm(self):
         pipeline = ["make_lowercase", "clean_text"]
@@ -146,16 +160,42 @@ class TestModelExperimentation(unittest.TestCase):
         model.plot_confusion_matrix(save_filepath="../visualizations/confusion_matrix_svm.png")
 
     def test_tune_svm(self):
-        pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
+        pipeline = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
                           shuffle=True, pipeline=pipeline, drop_duplicates=True)
         params = {}
         model = SVM(dataset, params)
-        hyperparameters = {
-            "C": {"min": 0.1, "max": 100, "step": [0.1, 1., 10., 100., 1000.]},
-            "gamma": {"min": 0.01, "max": 10, "step": [0.0001, 0.001, 0.01, 0.1, 1., 10.]},
+        param_space = {
+            "C": [0.1, 1., 10., 100., 1000.],
+            "gamma": [0.0001, 0.001, 0.01, 0.1, 1., 10.],
         }
-        model.tune(n_trials=10, n_jobs=10, param_space=hyperparameters, method="gridsearch")
+
+        best_params = model.tune(n_jobs=None, param_space=param_space, method="gridsearch")
+
+        print("finished tuning")
+
+        model = SVM(dataset, best_params)
+        model.fit()
+        print("finished fitting")
+
+        accuracy, precision, recall, f1_score = model.evaluate()
+        print("finished evaluating")
+        svm_results = {
+            "performance": {
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score
+            },
+            "tuning": {
+                "param_space": param_space,
+                "best_params": best_params
+            }
+        }
+
+        with open("../results/svm/svm_results.json", "w") as file:
+            json.dump(svm_results, file, indent=3)
+        model.plot_confusion_matrix(show=False, save_filepath="../results/svm/svm_confusion_matrix.png")
 
     def test_cross_validate_svm(self):
         pipeline = ["make_lowercase", "expand_contractions" "clean_text"]
@@ -193,10 +233,10 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
 
         for i, dataset in enumerate(datasets):
             model = kNN(dataset, {})
-            best_params = model.tune(param_space, n_jobs=-1, method="gridsearch")
+            best_params = model.tune(param_space, n_jobs=6, method="gridsearch")
             model = kNN(dataset, best_params)
             model.fit()
-            print(f"Dataset {i+1}")
+            print(f"Dataset {i + 1}")
             print(f"Best parameters: {best_params}")
             print(f"Results: {model.evaluate()}")
 
@@ -213,4 +253,3 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
             model = SVM(dataset, best_params)
             model.fit()
             print(model.evaluate())
-
