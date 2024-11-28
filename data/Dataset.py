@@ -14,8 +14,8 @@ class Dataset:
     Class to handle all necessary functionality and data handling related to the training, test and validation data.
     """
 
-    def __init__(self, csv_path=None, train_data=None, val_data=None, test_data=None, test_split=0., pipeline=None,
-                 val_split=0., shuffle=False, drop_duplicates=False, encode_labels=True, random_state=42):
+    def __init__(self, csv_path=None, train_data=None, val_data=None, test_data=None, test_split=0., preprocess=None,
+                 val_split=0., shuffle=False, drop_duplicates=False, encode_labels=True):
         """
         Constructor for the Dataset class.
         :param csv_path: Path to the CSV file that contains all the data.
@@ -33,31 +33,31 @@ class Dataset:
             raise ValueError("Test split cannot be set because test data has been defined.")
         if val_data is not None and val_split > 0.:
             raise ValueError("Validation split cannot be set because validation data has been defined.")
-        if train_data is not None and shuffle is True:
-            raise ValueError("Unable to shuffle training data because training data is defined.")
         if (train_data is not None and test_data is None) or (train_data is None and test_data is not None):
             raise ValueError("Both training and test data need to be defined.")
         if (train_data is not None or val_data is not None or test_data is not None) and csv_path is not None:
             raise ValueError("Unable to define dataset .csv filepath while data is defined.")
 
-        pipeline = pipeline if pipeline is not None else ["make_lowercase", "expand_contractions", "clean_text",
-                                                          "remove_duplicates"]
+        preprocess = preprocess if preprocess is not None else ["make_lowercase", "expand_contractions",
+                                                                "remove_stopwords", "lemmatize", "clean_text"]
+
         if train_data is None and val_data is None and test_data is None:
             self.__data = pd.read_csv(csv_path)
-            self.__data = PreprocessingPipeline(self.__data, pipeline=pipeline).apply()
+            self.__data = PreprocessingPipeline(preprocess, dataset=self.__data, shuffle=self.__shuffle).apply()
             self.__data["label"] = self.__encode_labels(self.__data["label"]) if encode_labels else self.__data["label"]
-            if self.__shuffle:
-                self.__data = self.__data.sample(frac=1, random_state=random_state).reset_index(drop=True)
             if val_split > 0.:
-                self.train, self.val, self.test = self.__train_test_val_split()
+                self.train, self.test, self.val = self.__train_test_val_split()
             else:
                 self.train, self.test = self.__train_test_val_split()
                 self.val = None
         else:
-            self.train = PreprocessingPipeline(train_data, pipeline=pipeline).apply()
-            self.test = PreprocessingPipeline(test_data, pipeline=pipeline).apply()
+            print("Preprocessing train data...")
+            self.train = PreprocessingPipeline(pipeline=preprocess, dataset=train_data).apply()
+            print("\nPreprocessing test data...")
+            self.test = PreprocessingPipeline(pipeline=preprocess, dataset=test_data).apply()
             if val_data is not None:
-                self.val = PreprocessingPipeline(val_data, pipeline=pipeline).apply()
+                print("\nPreprocessing validation data...")
+                self.val = PreprocessingPipeline(pipeline=preprocess, dataset=val_data).apply()
             else:
                 self.val = None
             if encode_labels:
@@ -93,34 +93,6 @@ class Dataset:
         data = self.get_full_dataset()
         kf = KFold(n_splits=n_splits)
         return [{"train": data.iloc[split[0]], "test": data.iloc[split[1]]} for split in list(kf.split(data))]
-
-    def clean_text(self, text):
-        """
-        Class function that cleans all the data by removing punctuation, hyperlinks, double whitespaces, etc.
-        :param text: Raw input text split into sentences.
-        :param remove_stopwords: Boolean to determine if stopwords should be removed during cleaning.
-        :return: Returns a Pandas Series that contains the cleaned text.
-        """
-        clean_text = []
-        for sentence in text:
-            sentence = sentence.lower()
-            sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
-            sentence = re.sub(r'\<a href', ' ', sentence)
-            sentence = re.sub(r'&amp;', '', sentence)
-            sentence = re.sub(r'[_"\-;%()|+&=*%.,!?:#$@\[\]/]', ' ', sentence)
-            sentence = re.sub(r'<br />', ' ', sentence)
-            sentence = re.sub(r'\'', ' ', sentence)
-            sentence = re.sub(r'^(\d{1,2})(.|\)) ', '', sentence)
-            sentence = re.sub(r'  ', ' ', sentence)
-
-            # if self.remove_stopwords:
-            #     sentence = sentence.split()
-            #     stops = set(stopwords.words("english"))
-            #     sentence = [w for w in sentence if not w in stops]
-            #     sentence = " ".join(sentence)
-
-            clean_text.append(sentence)
-        return pd.Series(clean_text)
 
     def __count_vocab_size(self):
         """

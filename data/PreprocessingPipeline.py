@@ -1,7 +1,6 @@
 import json
 import os.path
 import re
-from abc import ABC, abstractmethod
 from nltk.corpus import stopwords, wordnet
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
@@ -13,44 +12,47 @@ nltk.download('punkt_tab', quiet=True)
 nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 
-class PreprocessingPipeline(ABC):
-    def __init__(self, dataset, pipeline, feature="description", shuffle=True):
+class PreprocessingPipeline:
+    def __init__(self, pipeline, dataset=None, feature="description", shuffle=True):
         self.dataset = dataset
         self.pipeline = pipeline
         self.feature = feature
 
-        if shuffle:
+        if shuffle and dataset is not None:
             self.dataset = self.dataset.sample(frac=1, random_state=42).reset_index(drop=True)
 
-    def apply(self):
-        for preprocess in self.pipeline:
-            self.__preprocess(preprocess)
-        return self.dataset
+    def apply(self, x=None):
+        if x is None:
+            for process_type in self.pipeline:
+                self.dataset[self.feature] = self.__preprocess(self.dataset[self.feature], process_type)
+            return self.dataset
+        else:
+            for process_type in self.pipeline:
+                x = self.__preprocess(x, process_type)
+            return x
 
-    def __preprocess(self, preprocess):
-        if preprocess == "make_lowercase":
-            self.__make_lowercase()
-        elif preprocess == "clean_text":
-            self.__clean_text()
-        elif preprocess == "remove_stopwords":
-            self.__remove_stopwords()
-        elif preprocess == "expand_contractions":
-            self.__expand_contractions()
-        elif preprocess == "lemmatize":
-            self.__lemmatize()
-        elif preprocess == "remove_duplicates":
-            self.__remove_duplicates()
+    def __preprocess(self, data, process_type):
+        if process_type == "make_lowercase":
+            return self.__make_lowercase(data)
+        elif process_type == "clean_text":
+            return self.__clean_text(data)
+        elif process_type == "remove_stopwords":
+            return self.__remove_stopwords(data)
+        elif process_type == "expand_contractions":
+            return self.__expand_contractions(data)
+        elif process_type == "lemmatize":
+            return self.__lemmatize(data)
 
-    def __make_lowercase(self):
+    def __make_lowercase(self, data):
         lowercase = []
-        for sentence in tqdm(self.dataset[self.feature], desc="Converting to lowercase"):
+        for sentence in tqdm(data, desc="Converting to lowercase"):
             sentence = sentence.lower()
             lowercase.append(sentence)
-        self.dataset[self.feature] = pd.Series(lowercase)
+        return lowercase
 
-    def __clean_text(self):
+    def __clean_text(self, data):
         clean_text = []
-        for sentence in tqdm(self.dataset[self.feature], desc="Cleaning text"):
+        for sentence in tqdm(data, desc="Cleaning text"):
             sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
             sentence = re.sub(r'\<a href', ' ', sentence)
             sentence = re.sub(r'&amp;', '', sentence)
@@ -59,40 +61,40 @@ class PreprocessingPipeline(ABC):
             sentence = re.sub(r'\'', ' ', sentence)
             sentence = re.sub(r'^(\d{1,2})(.|\)) ', '', sentence)
             sentence = re.sub(r'  ', ' ', sentence)
-            clean_text.append(sentence)
-        self.dataset[self.feature] = pd.Series(clean_text)
+            clean_text.append(sentence.strip())
+        return clean_text
 
-    def __remove_stopwords(self):
+    def __remove_stopwords(self, data):
         removed_stopwords = []
         stops = set(stopwords.words("english"))
-        for sentence in tqdm(self.dataset[self.feature], desc="Removing stopwords"):
+        for sentence in tqdm(data, desc="Removing stopwords"):
             sentence = sentence.split()
             sentence = [w for w in sentence if not w in stops]
             sentence = " ".join(sentence)
             removed_stopwords.append(sentence)
-        self.dataset[self.feature] = pd.Series(removed_stopwords)
+        return removed_stopwords
 
-    def __expand_contractions(self):
+    def __expand_contractions(self, data):
         with open(f"{os.path.dirname(__file__)}/preprocessing/contractions_dict.json") as file:
             contractions = json.load(file)
         expanded_contractions = []
-        for sentence in tqdm(self.dataset[self.feature], desc="Expanding contractions"):
+        for sentence in tqdm(data, desc="Expanding contractions"):
             sentence = sentence.split()
             sentence = [contractions.get(item, item) for item in sentence]
             sentence = " ".join(sentence)
             expanded_contractions.append(sentence)
-        self.dataset[self.feature] = pd.Series(expanded_contractions)
+        return pd.Series(expanded_contractions)
 
-    def __lemmatize(self):
+    def __lemmatize(self, data):
         lemmatizer = WordNetLemmatizer()
         lemmatized = []
-        for sentence in tqdm(self.dataset[self.feature], desc="Lemmatizing"):
+        for sentence in tqdm(data, desc="Lemmatizing"):
             sentence = nltk.word_tokenize(sentence)
             sentence = [lemmatizer.lemmatize(token, self.__get_wordnet_pos(pos))
                         for token, pos in nltk.pos_tag(sentence)]
             sentence = " ".join(sentence)
             lemmatized.append(sentence)
-        self.dataset[self.feature] = pd.Series(lemmatized)
+        return lemmatized
 
     def __get_wordnet_pos(self, pos):
         if pos.startswith('J'):
@@ -105,6 +107,3 @@ class PreprocessingPipeline(ABC):
             return wordnet.ADV
         else:
             return wordnet.NOUN
-
-    def __remove_duplicates(self):
-        self.dataset.drop_duplicates(inplace=True)

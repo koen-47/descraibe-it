@@ -21,17 +21,17 @@ class TestModelExperimentation(unittest.TestCase):
         pipeline2 = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
         pipeline3 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline1, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline1, drop_duplicates=True)
         dataset2 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline2, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline2, drop_duplicates=True)
         dataset3 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline3, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline3, drop_duplicates=True)
         return dataset1, dataset2, dataset3
 
     def test_fit_lstm(self):
         pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.840B.300d.txt", dimensionality=300)
 
         params = {
@@ -55,14 +55,14 @@ class TestModelExperimentation(unittest.TestCase):
     def test_cross_validate_lstm(self):
         pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
 
         params = {
             "lstm_layers": [{"bidirectional": True, "units": 480}],
             "fc_layers": [{"units": 656, "dropout_p": 0.7}],
             "early_stopping": {"patience": 10, "verbose": 1},
-            "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 50},
+            "scheduler": {"initial_learning_rate": 0.01, "decay_steps": 50},
             "misc": {"epochs": 25, "lr": 0.0085, "batch_size": 512, "save_filepath": "./models/saved/lstm.h5"}
         }
 
@@ -73,7 +73,7 @@ class TestModelExperimentation(unittest.TestCase):
     def test_tune_lstm(self):
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
         dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=["make_lowercase", "clean_text"], drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=["make_lowercase", "clean_text"], drop_duplicates=True)
 
         model1 = LSTM(dataset1, embedding=glove)
         hyperparameters = {
@@ -88,7 +88,7 @@ class TestModelExperimentation(unittest.TestCase):
         print("adfasdf")
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         params = {"n_neighbors": 16, "weights": "distance", "p": 2}
         model = kNN(dataset, params)
         model.fit()
@@ -101,7 +101,7 @@ class TestModelExperimentation(unittest.TestCase):
         val_data = data[12000:15000]
         test_data = data[15000:20000]
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
-        dataset = Dataset(train_data=train_data, val_data=val_data, test_data=test_data, pipeline=pipeline,
+        dataset = Dataset(train_data=train_data, val_data=val_data, test_data=test_data, preprocess=pipeline,
                           drop_duplicates=True)
         params = {"n_neighbors": 16, "weights": "distance", "p": 2}
         model = kNN(dataset, params)
@@ -112,7 +112,7 @@ class TestModelExperimentation(unittest.TestCase):
     def test_cross_validate_knn(self):
         pipeline = ["make_lowercase", "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         params = {"n_neighbors": 8}
         model = kNN(dataset, params)
         model.cross_validate(n_splits=3)
@@ -120,14 +120,14 @@ class TestModelExperimentation(unittest.TestCase):
     def test_tune_knn(self):
         pipeline = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                          val_split=0.2, shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          val_split=0.2, shuffle=True, preprocess=pipeline, drop_duplicates=True)
         model = kNN(dataset, {})
         param_space = {
             "n_neighbors": list(range(1, 51)),
             "weights": ["distance", "uniform"],
             "p": [2]
         }
-        best_params = model.tune(param_space, method="gridsearch", n_jobs=None)
+        best_params = model.tune(param_space, n_jobs=None)
         model = kNN(dataset, best_params)
         model.fit()
 
@@ -152,7 +152,7 @@ class TestModelExperimentation(unittest.TestCase):
     def test_svm(self):
         pipeline = ["make_lowercase", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         params = {}
         model = SVM(dataset, params)
         model.fit()
@@ -162,7 +162,7 @@ class TestModelExperimentation(unittest.TestCase):
     def test_tune_svm(self):
         pipeline = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         params = {}
         model = SVM(dataset, params)
         param_space = {
@@ -170,7 +170,7 @@ class TestModelExperimentation(unittest.TestCase):
             "gamma": [0.0001, 0.001, 0.01, 0.1, 1., 10.],
         }
 
-        best_params = model.tune(n_jobs=None, param_space=param_space, method="gridsearch")
+        best_params = model.tune(n_jobs=None, param_space=param_space)
 
         print("finished tuning")
 
@@ -200,7 +200,7 @@ class TestModelExperimentation(unittest.TestCase):
     def test_cross_validate_svm(self):
         pipeline = ["make_lowercase", "expand_contractions" "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         params = {"C": 10., "gamma": 0.1}
         model = SVM(dataset, params)
         model.cross_validate(n_splits=3)
@@ -216,11 +216,11 @@ class TestMultipleDatasetExperimentation(unittest.TestCase):
         pipeline2 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords"]
         pipeline3 = ["make_lowercase", "expand_contractions", "clean_text", "remove_stopwords", "lemmatize"]
         dataset1 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline1, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline1, drop_duplicates=True)
         dataset2 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline2, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline2, drop_duplicates=True)
         dataset3 = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4,
-                           val_split=0.2, shuffle=True, pipeline=pipeline3, drop_duplicates=True)
+                           val_split=0.2, shuffle=True, preprocess=pipeline3, drop_duplicates=True)
         return dataset1, dataset2, dataset3
 
     def test_tune_knn(self):

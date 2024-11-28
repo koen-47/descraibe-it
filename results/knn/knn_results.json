@@ -1,9 +1,9 @@
 {
    "performance": {
-      "accuracy": 0.9436448028505791,
-      "precision": 0.9439611768532019,
-      "recall": 0.943563358247676,
-      "f1_score": 0.9435974352163928
+      "accuracy": 94.47421299397188,
+      "precision": 94.50470378042948,
+      "recall": 94.47350858088726,
+      "f1_score": 94.47746877190171
    },
    "tuning": {
       "param_space": {
@@ -68,7 +68,7 @@
          ]
       },
       "best_params": {
-         "n_neighbors": 19,
+         "n_neighbors": 35,
          "p": 2,
          "weights": "distance"
       }

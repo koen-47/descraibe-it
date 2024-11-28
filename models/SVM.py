@@ -13,6 +13,7 @@ from sklearn.svm import SVC
 from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, anneal
 
 from data.Dataset import Dataset
+from data.PreprocessingPipeline import PreprocessingPipeline
 from models.Model import Model
 
 
@@ -22,16 +23,25 @@ class SVM(Model):
         self.__train = dataset.train
         self.__val = dataset.val
         self.__test = dataset.test
+
         self.__vectorizer = TfidfVectorizer()
         self.__vectorizer.fit_transform(self.__dataset.get_full_dataset()["description"])
+
         self.__model = None
         self.__params = params
         self.__param_space = {}
 
-    def fit(self):
-        x_train = self.__vectorizer.transform(self.__train["description"])
+    def fit(self, use_val=False):
+        x_train = self.__train["description"]
         y_train = self.__train["label"]
 
+        if use_val:
+            x_val = self.__val["description"]
+            y_val = self.__val["label"]
+            x_train = pd.concat([x_train, x_val]).reset_index(drop=True)
+            y_train = pd.concat([y_train, y_val]).reset_index(drop=True)
+
+        x_train = self.__vectorizer.transform(x_train)
         model = SVC(C=self.__params["C"], gamma=self.__params["gamma"])
         model.fit(x_train, y_train)
         self.__model = model
@@ -54,22 +64,11 @@ class SVM(Model):
 
         return accuracy, precision, recall, f1
 
-    def cross_validate(self, n_splits):
-        cv = self.__dataset.get_cv_split(n_splits=n_splits)
-        total = []
-        for data in cv:
-            train_data = data["train"]
-            test_data = data["test"]
-            pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
-            dataset = Dataset(train_data=train_data, test_data=test_data, pipeline=pipeline, drop_duplicates=True)
-            model = SVM(dataset, self.__params)
-            model.fit()
-            results = model.evaluate()
-            total.append(results)
-        total = np.array(total)
-        return np.average(total, axis=0)
-
-    def predict(self, x):
+    def predict(self, x, preprocessing_pipeline=None):
+        if preprocessing_pipeline is not None:
+            pipeline = PreprocessingPipeline(preprocessing_pipeline)
+            x = pipeline.apply(x)
+        x = self.__vectorizer.transform(x)
         y_pred = self.__model.predict(x)
         return self.__dataset.decode_label(y_pred)
 
@@ -84,57 +83,27 @@ class SVM(Model):
                                                              values_format=".2f", include_values=False)
         plt.xticks(rotation=90)
         plt.subplots_adjust(bottom=0.17)
+        plt.tight_layout()
         if save_filepath is not None:
             plt.savefig(save_filepath, bbox_inches="tight")
         if show:
             plt.show()
-
-    def __create_model(self, trial):
-        C = self.__param_space["C"]
-        gamma = self.__param_space["gamma"]
-        C = trial.suggest_categorical("C", C["step"])
-        gamma = trial.suggest_categorical("gamma", gamma["step"])
-        model = SVC(C=C, gamma=gamma)
-        return model
-
-    def __objective(self, trial):
-        model = self.__create_model(trial)
-        x_train = self.__train["description"]
-        y_train = self.__train["label"]
-        x_train = self.__vectorizer.transform(x_train)
-
-        x_val = self.__val["description"]
-        y_val = self.__val["label"]
-        x_val = self.__vectorizer.transform(x_val)
-
-        model.fit(x_train, y_train)
-        y_pred = model.predict(x_val)
-        accuracy = accuracy_score(y_val, y_pred)
-        return accuracy
 
     def __gridsearch(self, param_space, n_jobs=1, verbose=False):
         train_data = self.__train
         val_data = self.__val
         train_data["i"] = -1
         val_data["i"] = 0
-        data = pd.concat([train_data, val_data])
-        pds = PredefinedSplit(test_fold=data["i"].tolist())
+        test_fold = pd.concat([train_data, val_data])
+        pds = PredefinedSplit(test_fold=test_fold["i"].tolist())
 
-        x_train = data["description"]
+        x_train = self.__train["description"]
         x_train = self.__vectorizer.transform(x_train)
-        y_train = np.array(data["label"])
+        y_train = np.array(self.__train["label"])
 
         grid = GridSearchCV(SVC(), param_space, refit=True, n_jobs=n_jobs, cv=pds, verbose=10 if verbose else 0)
         grid.fit(x_train, y_train)
         return grid.best_params_
 
-    def tune(self, param_space, n_trials=None, n_jobs=1, method="bayesian", verbose=False):
-        if method == "gridsearch" and n_trials is not None:
-            raise ValueError("n_trials must be None while performing grid search.")
-
-        self.__param_space = param_space
-        if method == "bayesian":
-            study = optuna.create_study(direction="maximize")
-            study.optimize(self.__objective, n_trials=n_trials, n_jobs=n_jobs)
-            return study.best_params
+    def tune(self, param_space, n_jobs=1, verbose=False):
         return self.__gridsearch(param_space, n_jobs, verbose=verbose)

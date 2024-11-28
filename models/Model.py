@@ -17,7 +17,3 @@ class Model(ABC):
     @abstractmethod
     def predict(self, x):
         pass
-
-    @abstractmethod
-    def tune(self, n_trials, n_jobs, hyperparameters, method):
-        pass

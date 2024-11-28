@@ -14,7 +14,7 @@ class TestTransformer(unittest.TestCase):
     def test_transformer(self):
         pipeline = ["make_lowercase", "expand_contractions", "clean_text"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
 
         model = Transformer(dataset, glove, params={})

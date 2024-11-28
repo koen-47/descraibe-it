@@ -2,25 +2,27 @@ import os
 import unittest
 
 from data.Dataset import Dataset
+from data.PreprocessingPipeline import PreprocessingPipeline
 
 
 class TestDataset(unittest.TestCase):
     def setUp(self) -> None:
         self.data_filepath = f"{os.path.dirname(__file__)}/../data/saved"
-        self.pipeline = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
-        self.dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.3, val_split=0.2,
-                               shuffle=True, pipeline=self.pipeline, drop_duplicates=True)
+        # self.pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "lemmatize", "clean_text"]
+        # self.dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.3, val_split=0.2,
+        #                        shuffle=True, pipeline=self.pipeline, drop_duplicates=True)
 
-    def test_dataset_csv(self):
-        print(self.dataset.train)
-        print(self.dataset.val)
-        print(self.dataset.test)
+    def test_dataset_individual_datapoint(self):
+        print(self.dataset)
+        x = "3. I simply can't with this right now."
+        preprocessing = PreprocessingPipeline(self.pipeline)
+        print(preprocessing.apply(x))
 
     def test_dataset_set_data(self):
         train_data = self.dataset.train[:1000]
         val_data = self.dataset.val[:1000]
         test_data = self.dataset.test[:1000]
-        dataset = Dataset(train_data=train_data, val_data=val_data, test_data=test_data, pipeline=self.pipeline,
+        dataset = Dataset(train_data=train_data, val_data=val_data, test_data=test_data, preprocess=self.pipeline,
                           encode_labels=False, drop_duplicates=True)
 
         print(dataset.val["label"].value_counts())
@@ -31,14 +33,53 @@ class TestDataset(unittest.TestCase):
         val_data = self.dataset.val[:1000]
         test_data = self.dataset.test[:1000]
         dataset = Dataset(csv_path="", train_data=train_data, val_data=val_data, test_data=test_data,
-                          pipeline=self.pipeline, encode_labels=False, drop_duplicates=True)
+                          preprocess=self.pipeline, encode_labels=False, drop_duplicates=True)
 
     def test_cv_split(self):
         pipeline = ["make_lowercase", "expand_contractions" "clean_text", "remove_stopwords"]
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.4, val_split=0.2,
-                          shuffle=True, pipeline=pipeline, drop_duplicates=True)
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True)
         cv = dataset.get_cv_split(n_splits=4)
         print(cv)
         for split in cv:
             print(len(split["train"]))
             print(len(split["test"]))
+
+    def test_create_splits(self):
+        import re
+        pipeline = []
+        dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0.3, val_split=0.2,
+                          shuffle=True, preprocess=pipeline, drop_duplicates=True, encode_labels=False)
+
+        len_train = len(dataset.train)
+        len_val = len(dataset.val)
+        len_test = len(dataset.test)
+
+        for i, desc in enumerate(dataset.train["description"]):
+            split_desc = desc.split()
+            if bool(re.search(r"\b\d+\.", split_desc[0])) or bool(re.search(r"\b\d+\)", split_desc[0])):
+                dataset.train.loc[i, "description"] = " ".join(split_desc[1:])
+            # else:
+            #     print(desc)
+        dataset.train.to_csv("../data/splits/train.csv", index=False)
+
+        for i, desc in enumerate(dataset.test["description"]):
+            split_desc = desc.split()
+            if bool(re.search(r"\b\d+\.", split_desc[0])) or bool(re.search(r"\b\d+\)", split_desc[0])):
+                dataset.test.loc[i, "description"] = " ".join(split_desc[1:])
+            # else:
+            #     print(desc)
+        dataset.test.to_csv("../data/splits/test.csv", index=False)
+
+        for i, desc in enumerate(dataset.val["description"]):
+            split_desc = desc.split()
+            if bool(re.search(r"\b\d+\.", split_desc[0])) or bool(re.search(r"\b\d+\)", split_desc[0])):
+                dataset.val.loc[i, "description"] = " ".join(split_desc[1:])
+            # else:
+            #     print(desc)
+        dataset.val.to_csv("../data/splits/val.csv", index=False)
+
+        print(len_train)
+        print(len_val)
+        print(len_test)
+        print(len_train + len_val + len_test)

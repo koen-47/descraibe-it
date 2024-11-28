@@ -1,0 +1,1441 @@
+{
+   "param_space": {
+      "architecture": {
+         "n_lstm_units": {
+            "min": 480,
+            "max": 480,
+            "step": 32
+         },
+         "n_fc_layers": {
+            "min": 1,
+            "max": 1,
+            "step": 1
+         },
+         "n_fc_units": {
+            "min": 656,
+            "max": 656,
+            "step": 64
+         },
+         "dropout_p": {
+            "min": 0.7,
+            "max": 0.7,
+            "step": 0.1
+         }
+      },
+      "optimizer": {
+         "scheduler": {
+            "initial_lr": {
+               "min": 0.001,
+               "max": 0.001
+            },
+            "decay_steps": {
+               "min": 15,
+               "max": 15,
+               "step": 15
+            }
+         },
+         "adam": {
+            "beta_1": {
+               "min": 0.0,
+               "max": 0.999
+            },
+            "beta_2": {
+               "min": 0.9,
+               "max": 0.9999
+            }
+         },
+         "sgd": {
+            "momentum": {
+               "min": 0.0,
+               "max": 1.0
+            }
+         }
+      }
+   },
+   "trials": [
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.7661690260015579,
+                  "beta_2": 0.9145797661727821
+               }
+            }
+         },
+         "score": 1.9557734727859497
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.21624476442683566,
+                  "beta_2": 0.9394345254089267
+               }
+            }
+         },
+         "score": 1.5366603136062622
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.9250072264311825,
+                  "beta_2": 0.9271331221610575
+               }
+            }
+         },
+         "score": 2.073131799697876
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.5468770664375708,
+                  "beta_2": 0.9866768182144764
+               }
+            }
+         },
+         "score": 1.6662284135818481
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.6439665851628411,
+                  "beta_2": 0.9824610427065414
+               }
+            }
+         },
+         "score": 1.7687777280807495
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.44662088666380334,
+                  "beta_2": 0.9471965236656193
+               }
+            }
+         },
+         "score": 1.6630903482437134
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.7144662750436461,
+                  "beta_2": 0.9698618880372095
+               }
+            }
+         },
+         "score": 1.8417693376541138
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.1584375721722951,
+                  "beta_2": 0.9066069899115425
+               }
+            }
+         },
+         "score": 1.6077536344528198
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.7413872558969787,
+                  "beta_2": 0.9966069802008563
+               }
+            }
+         },
+         "score": 1.9009525775909424
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.18244292654857044,
+                  "beta_2": 0.9983515039522534
+               }
+            }
+         },
+         "score": 1.5209829807281494
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.017399425362701115,
+                  "beta_2": 0.968011881501332
+               }
+            }
+         },
+         "score": 1.5152850151062012
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.007914995834179223,
+                  "beta_2": 0.9630687758148443
+               }
+            }
+         },
+         "score": 1.4540722370147705
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.011591933037910729,
+                  "beta_2": 0.9639131755529744
+               }
+            }
+         },
+         "score": 1.4522570371627808
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.3555178024349015,
+                  "beta_2": 0.964331079442941
+               }
+            }
+         },
+         "score": 1.637821912765503
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.018628052572995053,
+                  "beta_2": 0.9532998416278587
+               }
+            }
+         },
+         "score": 1.4558871984481812
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.3094544590354086,
+                  "beta_2": 0.956861524280921
+               }
+            }
+         },
+         "score": 1.4870352745056152
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.07868957119773738,
+                  "beta_2": 0.9353904840514048
+               }
+            }
+         },
+         "score": 1.561416745185852
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.2761620522752452,
+                  "beta_2": 0.977368075021511
+               }
+            }
+         },
+         "score": 1.5801082849502563
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.4227749779373332,
+                  "beta_2": 0.9576868193853122
+               }
+            }
+         },
+         "score": 1.6415666341781616
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.16279101951549502,
+                  "beta_2": 0.9442463644811273
+               }
+            }
+         },
+         "score": 1.5530273914337158
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.09556659043161157,
+                  "beta_2": 0.9266816668174378
+               }
+            }
+         },
+         "score": 1.4983960390090942
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.014487172802872768,
+                  "beta_2": 0.953708965269307
+               }
+            }
+         },
+         "score": 1.5053735971450806
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.013617126916924058,
+                  "beta_2": 0.9743934358354315
+               }
+            }
+         },
+         "score": 1.4275883436203003
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.1010140596908453,
+                  "beta_2": 0.9766455393109079
+               }
+            }
+         },
+         "score": 1.479904055595398
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.25347785801259787,
+                  "beta_2": 0.9706670768830208
+               }
+            }
+         },
+         "score": 1.526247262954712
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.10376984332079986,
+                  "beta_2": 0.9904263174845813
+               }
+            }
+         },
+         "score": 1.4999476671218872
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.0034402860403330996,
+                  "beta_2": 0.9625212691319821
+               }
+            }
+         },
+         "score": 1.4982495307922363
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.3576826127349004,
+                  "beta_2": 0.9757636238267199
+               }
+            }
+         },
+         "score": 1.6268651485443115
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.9919732959634571,
+                  "beta_2": 0.9601789837261222
+               }
+            }
+         },
+         "score": 2.0523247718811035
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.11808423788001035,
+                  "beta_2": 0.9830826998999385
+               }
+            }
+         },
+         "score": 1.4360523223876953
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.127067778700375,
+                  "beta_2": 0.991351812216098
+               }
+            }
+         },
+         "score": 1.5509246587753296
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.0698463878952501,
+                  "beta_2": 0.9817359811784233
+               }
+            }
+         },
+         "score": 1.495888352394104
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.2117767491500248,
+                  "beta_2": 0.9727497587352313
+               }
+            }
+         },
+         "score": 1.5497266054153442
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.05352397452815937,
+                  "beta_2": 0.982792186527052
+               }
+            }
+         },
+         "score": 1.5044575929641724
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.2223819776675226,
+                  "beta_2": 0.9648807878603581
+               }
+            }
+         },
+         "score": 1.4842212200164795
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.8471309511315642,
+                  "beta_2": 0.9875483700875216
+               }
+            }
+         },
+         "score": 1.9343290328979492
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.16322805003279384,
+                  "beta_2": 0.9419280400006349
+               }
+            }
+         },
+         "score": 1.5214051008224487
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.5739943668761802,
+                  "beta_2": 0.9801161523862012
+               }
+            }
+         },
+         "score": 1.7459582090377808
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.07344053968175887,
+                  "beta_2": 0.9517999507640899
+               }
+            }
+         },
+         "score": 1.497883915901184
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.13916987065184663,
+                  "beta_2": 0.9724209453283599
+               }
+            }
+         },
+         "score": 1.4605463743209839
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.046574287093415365,
+                  "beta_2": 0.966843465668967
+               }
+            }
+         },
+         "score": 1.5533876419067383
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.0008831293087801957,
+                  "beta_2": 0.9476333627142876
+               }
+            }
+         },
+         "score": 1.5050413608551025
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.04917788489379982,
+                  "beta_2": 0.9564842845633501
+               }
+            }
+         },
+         "score": 1.4841159582138062
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.12039494897252428,
+                  "beta_2": 0.9499611719790164
+               }
+            }
+         },
+         "score": 1.473454475402832
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.21102651960838598,
+                  "beta_2": 0.9378768495296872
+               }
+            }
+         },
+         "score": 1.474091649055481
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.003616358348246306,
+                  "beta_2": 0.9620499437338389
+               }
+            }
+         },
+         "score": 1.4958924055099487
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.05791910745701138,
+                  "beta_2": 0.925167249175254
+               }
+            }
+         },
+         "score": 1.4685155153274536
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.6158511195184727,
+                  "beta_2": 0.9941488731334891
+               }
+            }
+         },
+         "score": 1.7388862371444702
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.1687767059756246,
+                  "beta_2": 0.9855436928220189
+               }
+            }
+         },
+         "score": 1.485426425933838
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.4746107506394822,
+                  "beta_2": 0.9685065187204852
+               }
+            }
+         },
+         "score": 1.6797808408737183
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.3211375955553819,
+                  "beta_2": 0.9004821927425636
+               }
+            }
+         },
+         "score": 1.6370837688446045
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.13452799700921192,
+                  "beta_2": 0.9739492176030535
+               }
+            }
+         },
+         "score": 1.4730708599090576
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.13062346101431183,
+                  "beta_2": 0.9707808631463298
+               }
+            }
+         },
+         "score": 1.5551389455795288
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.03187610001490517,
+                  "beta_2": 0.9595377743321968
+               }
+            }
+         },
+         "score": 1.513416051864624
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.09146269782858876,
+                  "beta_2": 0.9536329907734475
+               }
+            }
+         },
+         "score": 1.4790105819702148
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.031154460782992277,
+                  "beta_2": 0.9773621945656888
+               }
+            }
+         },
+         "score": 1.511362910270691
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.27824103895630026,
+                  "beta_2": 0.9322264688652321
+               }
+            }
+         },
+         "score": 1.6724987030029297
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.18776821519706985,
+                  "beta_2": 0.9795385835620187
+               }
+            }
+         },
+         "score": 1.5241187810897827
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.3971063786692831,
+                  "beta_2": 0.9661007181703167
+               }
+            }
+         },
+         "score": 1.5926133394241333
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.0901230582417088,
+                  "beta_2": 0.972256359322232
+               }
+            }
+         },
+         "score": 1.4782131910324097
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.1429217801320993,
+                  "beta_2": 0.9555263428366843
+               }
+            }
+         },
+         "score": 1.417140007019043
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.14762648578028062,
+                  "beta_2": 0.9574256065265611
+               }
+            }
+         },
+         "score": 1.517928957939148
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.030279646655386364,
+                  "beta_2": 0.9462425543790143
+               }
+            }
+         },
+         "score": 1.4371898174285889
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.03232588251601827,
+                  "beta_2": 0.9426005611269802
+               }
+            }
+         },
+         "score": 1.574576497077942
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 480,
+               "n_fc_layers": 1,
+               "n_fc_units": 656,
+               "dropout_p": 0.7
+            },
+            "optimizer": {
+               "scheduler": {
+                  "initial_lr": 0.001,
+                  "decay_steps": 15
+               },
+               "adam": {
+                  "beta_1": 0.07364415498978813,
+                  "beta_2": 0.9467046957331737
+               }
+            }
+         },
+         "score": 1.4753624200820923
+      }
+   ],
+   "best_params": {
+      "architecture": {
+         "n_lstm_units": 480,
+         "n_fc_layers": 1,
+         "n_fc_units": 656,
+         "dropout_p": 0.7
+      },
+      "optimizer": {
+         "scheduler": {
+            "initial_lr": 0.001,
+            "decay_steps": 15
+         },
+         "adam": {
+            "beta_1": 0.1429217801320993,
+            "beta_2": 0.9555263428366843
+         }
+      }
+   },
+   "best_score": 1.417140007019043
+}

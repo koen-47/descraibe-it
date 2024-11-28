@@ -1,14 +1,18 @@
 import io
 import json
+import math
 from abc import ABC
 import random
+import os
+import functools
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import optuna
 import numpy as np
 import scipy
-# scipy.test()
 import pickle
-import tensorflow
+import tensorflow as tf
 import pandas as pd
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from tensorflow.keras.preprocessing.text import Tokenizer
@@ -17,7 +21,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, TextVectorization, Bidirectional, Dropout, BatchNormalization, LeakyReLU
 from keras.layers import Bidirectional, LayerNormalization
 from tensorflow.keras.layers import LSTM as LSTMLayer
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.optimizers.schedules import CosineDecay
 from tensorflow.keras.callbacks import LearningRateScheduler
 # from tensorflow.keras.saving import load_model
@@ -34,9 +38,12 @@ import matplotlib.pyplot as plt
 from models.Model import Model
 
 # Set the seed for reproducibility
-tensorflow.keras.utils.set_random_seed(42)
+tf.keras.utils.set_random_seed(42)
 random.seed(42)
 np.random.seed(42)
+
+# tf.get_logger().setLevel("ERROR")
+# tf.autograph.set_verbosity(0)
 
 
 class LSTM(Model):
@@ -84,19 +91,21 @@ class LSTM(Model):
             if dropout_p is not None:
                 model.add(Dropout(dropout_p))
         model.add(Dense(25, activation='softmax'))
+
         optimizer = Adam()
         model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
-
         scheduler = self.__get_lr_scheduler(self.__params["scheduler"])
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=self.__params["early_stopping"]["verbose"],
                            patience=self.__params["early_stopping"]["patience"])
+
+
+
         x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
         x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
         y_val = np.array(self.__val["label"])
         model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"], validation_data=(x_val, y_val),
-                  epochs=self.__params["misc"]["epochs"], verbose=1,
-                  callbacks=[es, scheduler])
-        model.save(self.__params["misc"]["save_filepath"], save_format="h5")
+                  epochs=self.__params["misc"]["epochs"], verbose=1, callbacks=[es, scheduler])
+        # model.save(self.__params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
 
     def __get_lr_scheduler(self, params):
@@ -115,7 +124,7 @@ class LSTM(Model):
         pred_label = self.__dataset.decode_label(pred_probs.argmax(axis=-1))
         return pred_label, pred_max_prob, pred_probs
 
-    def evaluate(self, x_test=None, y_test=None, use_val=False, return_incorrect=False):
+    def evaluate(self, x_test=None, y_test=None, use_val=False, return_incorrect=False, verbose=False):
         if x_test is None and y_test is None:
             y_test = self.__val["label"] if use_val else self.__test["label"]
             x_test = self.__val["description"] if use_val else self.__test["description"]
@@ -128,10 +137,14 @@ class LSTM(Model):
         y_pred_label = label_encoder.inverse_transform([np.argmax(pred) for pred in y_pred])
         y_test = label_encoder.inverse_transform(y_test)
 
-        accuracy = accuracy_score(y_test, y_pred_label)
-        precision = precision_score(y_test, y_pred_label, average='micro')
-        recall = recall_score(y_test, y_pred_label, average='micro')
-        f1 = f1_score(y_test, y_pred_label, average='micro')
+        accuracy = float(accuracy_score(y_test, y_pred_label)) * 100
+        precision = float(precision_score(y_test, y_pred_label, average='macro')) * 100
+        recall = float(recall_score(y_test, y_pred_label, average='macro')) * 100
+        f1 = float(f1_score(y_test, y_pred_label, average='macro')) * 100
+
+        if verbose:
+            print(f"Results for LSTM model:\n- Accuracy: {accuracy:.2f}%\n- Precision: {precision:.2f}%"
+                  f"\n- Recall: {recall:.2f}%\n- F1 score: {f1:.2f}%")
 
         if return_incorrect:
             y_pred_prob = [np.max(pred) for pred in y_pred]
@@ -180,47 +193,103 @@ class LSTM(Model):
         vocab_size = len(self.__tokenizer.word_index) + 1
         embedding_matrix = self.__embedding.compute_embedding_matrix(self.__tokenizer, vocab_size)
 
-        n_lstm_units = self.__param_space["n_lstm_units"]
-        n_fc_layers = self.__param_space["n_fc_layers"]
-        n_fc_units = self.__param_space["n_fc_units"]
-        dropout_p = self.__param_space["dropout_p"]
-
-        n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"],
-                                         step=n_lstm_units["step"])
-        n_fc_layers = trial.suggest_int("n_fc_layers", n_fc_layers["min"], n_fc_layers["max"], step=n_fc_layers["step"])
-        n_fc_units = trial.suggest_int("n_fc_units", n_fc_units["min"], n_fc_units["max"], step=n_fc_units["step"])
-        dropout_prob = trial.suggest_float("dropout_prob", dropout_p["min"], dropout_p["max"], step=dropout_p["step"])
-
         model = Sequential()
         model.add(Embedding(vocab_size, self.__embedding.dimensionality, weights=[embedding_matrix],
                             input_length=self.__embedding.dimensionality, trainable=False))
-        model.add(Bidirectional(LSTMLayer(n_lstm_units)))
-        for _ in range(n_fc_layers):
-            model.add(Dense(n_fc_units, activation="relu"))
-            model.add(Dropout(dropout_prob))
-        model.add(Dense(25, activation='softmax'))
-        optimizer = Adam()
-        model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
-        return model
 
-    def __objective(self, trial):
+        params = {"architecture": {}, "optimizer": {"scheduler": {}, "adam": {}, "sgd": {}}}
+
+        param_arch = self.__param_space["architecture"]
+        if "n_lstm_units" in param_arch:
+            n_lstm_units = param_arch["n_lstm_units"]
+            n_lstm_units = trial.suggest_int("n_lstm_units", n_lstm_units["min"], n_lstm_units["max"],
+                                             step=n_lstm_units["step"])
+            params["architecture"]["n_lstm_units"] = n_lstm_units
+            model.add(Bidirectional(LSTMLayer(n_lstm_units)))
+        if "n_fc_layers" in param_arch:
+            n_fc_layers = param_arch["n_fc_layers"]
+            n_fc_layers = trial.suggest_int("n_fc_layers", n_fc_layers["min"], n_fc_layers["max"],
+                                            step=n_fc_layers["step"])
+            params["architecture"]["n_fc_layers"] = n_fc_layers
+            n_fc_units = param_arch["n_fc_units"]
+            n_fc_units = trial.suggest_int("n_fc_units", n_fc_units["min"], n_fc_units["max"],
+                                           step=n_fc_units["step"])
+            params["architecture"]["n_fc_units"] = n_fc_units
+            dropout_p = param_arch["dropout_p"]
+            dropout_prob = trial.suggest_float("dropout_prob", dropout_p["min"], dropout_p["max"],
+                                               step=dropout_p["step"])
+            params["architecture"]["dropout_p"] = dropout_prob
+            for _ in range(n_fc_layers):
+                model.add(Dense(n_fc_units, activation="relu"))
+                model.add(Dropout(dropout_prob))
+
+            model.add(Dense(25, activation='softmax'))
+
+        optimizer = None
+        param_optim = self.__param_space["optimizer"]
+        param_scheduler = param_optim["scheduler"]
+        initial_lr = trial.suggest_float("lr", param_scheduler["initial_lr"]["min"],
+                                         param_scheduler["initial_lr"]["max"])
+        decay_steps = trial.suggest_int("decay_steps", param_scheduler["decay_steps"]["min"],
+                                        param_scheduler["decay_steps"]["max"],
+                                        step=param_scheduler["decay_steps"]["step"])
+        params["optimizer"]["scheduler"]["initial_lr"] = initial_lr
+        params["optimizer"]["scheduler"]["decay_steps"] = decay_steps
+
+        lr_scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
+
+        if "adam" in param_optim:
+            param_adam = param_optim["adam"]
+            beta_1 = trial.suggest_float("beta_1", param_adam["beta_1"]["min"], param_adam["beta_1"]["max"])
+            beta_2 = trial.suggest_float("beta_2", param_adam["beta_2"]["min"], param_adam["beta_2"]["max"])
+            optimizer = Adam(learning_rate=lr_scheduler, beta_1=beta_1, beta_2=beta_2)
+            params["optimizer"]["adam"]["beta_1"] = beta_1
+            params["optimizer"]["adam"]["beta_2"] = beta_2
+        elif "sgd" in param_optim:
+            param_sgd = param_optim["sgd"]
+            momentum = trial.suggest_float("momentum", param_sgd["momentum"]["min"], param_sgd["momentum"]["max"])
+            params["optimizer"]["sgd"]["momentum"] = momentum
+            optimizer = SGD(learning_rate=lr_scheduler, momentum=momentum)
+
+        model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["acc"])
+        return model, params
+
+    def __objective(self, trial, results):
         x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
         y_train = np.array(self.__train["label"])
+
         x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
         x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
         y_val = np.array(self.__val["label"])
-        model = self.__create_model(trial)
+
+        model, params = self.__create_model(trial)
         es = EarlyStopping(monitor='val_loss', mode='min', verbose=0, patience=10)
         model.fit(x_train, y_train, epochs=10000, batch_size=256,
                   validation_data=(x_train, y_train), verbose=0, callbacks=[es])
-        score = model.evaluate(x_val, y_val)
-        return score[0]
+        score = model.evaluate(x_val, y_val)[0]
 
-    def tune(self, n_trials, hyperparameters):
-        self.__param_space = hyperparameters
+        results["trials"].append({"params": params, "score": score})
+        if score < results["best_score"]:
+            results["best_params"] = params
+            results["best_score"] = score
+
+        with open(f"{os.path.dirname(__file__)}/../results/lstm/lstm_results_sgd_1.json", "w") as file:
+            json.dump(results, file, indent=3)
+
+        return score
+
+    def tune(self, n_trials, param_space):
+        self.__param_space = param_space
         study = optuna.create_study()
-        study.optimize(self.__objective, n_trials=n_trials)
+        results = {
+            "param_space": param_space,
+            "trials": [],
+            "best_params": {},
+            "best_score": math.inf
+        }
+        objective = functools.partial(self.__objective, results=results)
+        study.optimize(objective, n_trials=n_trials)
         print(study.best_params)
         return study.best_params
 

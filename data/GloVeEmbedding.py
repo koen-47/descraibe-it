@@ -29,8 +29,10 @@ class GloVeEmbedding:
         :return: Dictionary containing the word index of the GloVe embeddings file.
         """
         embeddings_index = dict()
+        with open(file_path, encoding="utf-8") as file:
+            num_lines = sum(1 for _ in file)
+
         file = open(file_path, encoding="utf8")
-        num_lines = sum(1 for _ in open(file_path, encoding="utf-8"))
         for line in tqdm(file, total=num_lines, desc="Loading GloVe embedding"):
             values = line.strip().split(" ")
             word = values[0]
@@ -71,23 +73,23 @@ class GloVeEmbedding:
 
         plt.show()
 
-    def calculate_k_words_max_min_distance(self, words, k, n=100):
-        embedding_word_vectors = {word: self.embedding_index[word] for word in words}
-
-        min_distances = []
-        for _ in tqdm(range(n)):
-            k_vectors = dict(random.sample(embedding_word_vectors.items(), k))
-            distances = []
-            for v1 in k_vectors.values():
-                for v2 in k_vectors.values():
-                    if not np.array_equal(v1, v2):
-                        distance = euclidean(v1, v2)
-                        distances.append(distance)
-            min_distance = min(distances)
-            min_distances.append((str(list(k_vectors.keys())), min_distance))
-
-        min_distances = sorted(min_distances, key=lambda x: x[1], reverse=True)
-        return min_distances
+    # def calculate_k_words_max_min_distance(self, words, k, n=100):
+    #     embedding_word_vectors = {word: self.embedding_index[word] for word in words}
+    #
+    #     min_distances = []
+    #     for _ in tqdm(range(n)):
+    #         k_vectors = dict(random.sample(embedding_word_vectors.items(), k))
+    #         distances = []
+    #         for v1 in k_vectors.values():
+    #             for v2 in k_vectors.values():
+    #                 if not np.array_equal(v1, v2):
+    #                     distance = euclidean(v1, v2)
+    #                     distances.append(distance)
+    #         min_distance = min(distances)
+    #         min_distances.append((str(list(k_vectors.keys())), min_distance))
+    #
+    #     min_distances = sorted(min_distances, key=lambda x: x[1], reverse=True)
+    #     return min_distances
 
     def calculate_min_distance_between_words(self, words):
         embedding_word_vectors = {word: self.embedding_index[word] for word in words}
