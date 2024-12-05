@@ -35,7 +35,7 @@ def main():
                 "lstm_layers": [{"bidirectional": True, "units": 480}],
                 "fc_layers": [{"units": 656, "dropout_p": 0.7}],
                 "early_stopping": {"patience": 10, "verbose": 1},
-                "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 15},
+                "scheduler": {"initial_learning_rate": 0.0001, "decay_steps": 25},
                 "optimizer": {"name": "adam", "beta_1": 0.9, "beta_2": 0.999},
                 "misc": {"epochs": 500, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5"}
             }

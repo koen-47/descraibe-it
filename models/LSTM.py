@@ -92,28 +92,32 @@ class LSTM(Model):
                 model.add(Dropout(dropout_p))
         model.add(Dense(25, activation='softmax'))
 
-        optimizer = Adam()
-        model.compile(optimizer=optimizer, loss='sparse_categorical_crossentropy', metrics=["acc"])
-        scheduler = self.__get_lr_scheduler(self.__params["scheduler"])
-        es = EarlyStopping(monitor='val_loss', mode='min', verbose=self.__params["early_stopping"]["verbose"],
+        initial_lr = self.__params["scheduler"]["initial_learning_rate"]
+        decay_steps = self.__params["scheduler"]["decay_steps"]
+        scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
+        scheduler = LearningRateScheduler(scheduler)
+
+        optimizer = None
+        if self.__params["optimizer"]["name"] == "adam":
+            beta_1 = self.__params["optimizer"]["beta_1"]
+            beta_2 = self.__params["optimizer"]["beta_2"]
+            optimizer = Adam(beta_1=beta_1, beta_2=beta_2)
+        elif self.__params["optimizer"]["name"] == "sgd":
+            momentum = self.__params["optimizer"]["momentum"]
+            optimizer = SGD(momentum=momentum)
+
+        model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["acc"])
+        es = EarlyStopping(monitor="val_loss", mode="min", verbose=self.__params["early_stopping"]["verbose"],
                            patience=self.__params["early_stopping"]["patience"])
-
-
 
         x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
         x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
         y_val = np.array(self.__val["label"])
         model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"], validation_data=(x_val, y_val),
                   epochs=self.__params["misc"]["epochs"], verbose=1, callbacks=[es, scheduler])
+
         # model.save(self.__params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
-
-    def __get_lr_scheduler(self, params):
-        initial_lr = params["initial_learning_rate"]
-        decay_steps = params["decay_steps"]
-        scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
-        scheduler = LearningRateScheduler(scheduler)
-        return scheduler
 
     def predict(self, x):
         x = self.__dataset.clean_text(x)
@@ -235,7 +239,6 @@ class LSTM(Model):
                                         step=param_scheduler["decay_steps"]["step"])
         params["optimizer"]["scheduler"]["initial_lr"] = initial_lr
         params["optimizer"]["scheduler"]["decay_steps"] = decay_steps
-
         lr_scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
 
         if "adam" in param_optim:
