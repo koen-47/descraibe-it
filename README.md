@@ -1,7 +1,7 @@
 <div align="center">
 <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./data/resources/descraibe-it-header-dark.svg">
-    <img alt="" src="./data/resources/descraibe-it-header-light.svg" />
+    <source media="(prefers-color-scheme: dark)" srcset="./data/resources/descraibe-it-header-dark.png">
+    <img alt="" src="./data/resources/descraibe-it-header-light.png" />
 </picture>
 </div>
 
