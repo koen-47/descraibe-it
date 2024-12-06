@@ -1,5 +1,8 @@
 <div align="center">
-${\textsf{\color{lightgreen}Green}}$
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./data/resources/descraibe-it-header-dark.svg">
+    <img alt="" src="./data/resources/descraibe-it-header-light.png" />
+</picture>
 </div>
 
 ## Installation
