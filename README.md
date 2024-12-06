@@ -31,8 +31,9 @@ distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associ
 The subset $W'$ should satisfy the following equation:
 
 $$
-\mathop{\max} \mathop{\min}\limits_{\begin{array}{c}
-w_i, w_j \in W' \\[-3pt]
+\mathop{\max} \mathop{\min}\limits_{\renewcommand{\arraystretch}{0.7}%
+\begin{array}{c}
+w_i, w_j \in W' \\
 i \neq j
 \end{array}} d(e(w_i), e(w_j))
 $$
