@@ -31,7 +31,7 @@ distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associ
 The subset $W'$ should satisfy the following equation:
 
 $$
-\mathop{\max} \mathop{\min}\limits_{w_i, w_j \in W, i \neq j} d(e(w_i), e(w_j))
+\mathop{\max} \mathop{\min}\limits_{w_i, w_j \in W'\\i \neq j} d(e(w_i), e(w_j))
 $$
 
 This problem is known as the [<em>max-min diversity problem</em>](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=51f97d822ec695f5700ac353bfff285bd44ef0e7) and is considered NP-hard. 
