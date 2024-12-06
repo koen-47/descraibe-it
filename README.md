@@ -24,8 +24,13 @@ First, we select the [words](https://github.com/googlecreativelab/quickdraw-data
 As our approach to word selection is based on word embeddings, we remove all [entries](./data/saved/categories_289.txt) consisting of more than one word to ensure we can compare
 the embeddings with each other.
 
-From these remaining words, we aim to find the subset of words that is as semantically diverse as possible. This involves selecting the subset of words that
-maximizes the minimum distance of the embeddings associated with each word. More formally, for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
+From these remaining words, we further narrow them down to a subset of 25. This is done in the interest of 
+the time and resource costs incurred by OpenAI's API, as many samples per word will be needed to accurately and fairly evaluate
+the validity of the more data hungry neural models. 
+
+To select a suitable set of 25 words, we aim to create as semantically a diverse subset as possible.
+This can be achieved by maximizing the minimum distance between the embeddings associated with each of the selected words.
+More formally, for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
 distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w \in W$.
 The subset $W'$ should satisfy the following:
 
