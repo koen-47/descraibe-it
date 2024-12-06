@@ -23,11 +23,11 @@ the embeddings with each other.
 From these remaining words, we aim to take a subset of words that are most 
 different to each other. That is, we aim to maximize the minimum distance 
 between the embeddings associated with each word. More formally, 
-for the set of embeddings E, we want to find the subset of embeddings E' 
+for the set of embeddings $E$, we want to find the subset of embeddings $E' \subset E$
 that adhere to the following equation:
 
 $$
-\frac{n!}{k!(n-k)!} = {n \choose k}
+\hat{\theta}^{MLE}=\underset{a}{\operatorname{\argmax}} P(D|\theta) = \frac{a_1}{a_1+a_0}
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
