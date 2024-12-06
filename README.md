@@ -20,14 +20,19 @@ a computer vision alternative which uses doodles instead of text descriptions.
 First, we select the [words](https://github.com/googlecreativelab/quickdraw-dataset/blob/master/categories.txt) used in that game.
 As our approach to word selection is based on word embeddings, we remove all [entries](./data/saved/categories_289.txt) consisting of more than one word to ensure we can compare
 the embeddings with each other.
-From these remaining words, we aim to take a subset of words that maximize the semantic differences between them.
-That is, we aim to maximize the minimum distance 
-between the embeddings associated with each word. More formally, 
-for the set of embeddings $E$, we want to find the subset of embeddings $E' \subset E$ using the Euclidean
-distance function $d(e_i, e_j)$ between embeddings $e_i$ and $e_j$ expressed by the following equation:
+
+
+From these remaining words, we aim to find the subset of words that maximizes the 
+semantic differences between them. This is performed by finding the subset of words that
+maximizes the minimum distance of the embeddings associated with each word.
+
+More formally, 
+for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
+distance function $d(e(i), e(j))$, where $e(w)$ returns the embedding associated with word $w$.
+The subset $W'$ should satisfy the following equation:
 
 $$
-\E' = \mathop{\arg \max}\limits_{i \neq j} \min d(e_i, e_j)
+\mathop{\max} \mathop{\min}\limits_{i \neq j} d(e(i), e(i))
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
