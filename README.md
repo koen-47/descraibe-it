@@ -28,11 +28,11 @@ maximizes the minimum distance of the embeddings associated with each word.
 
 More formally, 
 for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
-distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w$.
+distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w \in W$.
 The subset $W'$ should satisfy the following equation:
 
 $$
-\mathop{\max} \mathop{\min}\limits_{i \neq j} d(e(i), e(i))
+\mathop{\max} \mathop{\min}\limits_{w_i, w_j \in W, i \neq j} d(e(i), e(i))
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
