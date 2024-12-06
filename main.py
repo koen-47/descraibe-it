@@ -15,13 +15,9 @@ from models.SVM import SVM
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str)
-    parser.add_argument("--evaluate", action="store_true")
-    parser.add_argument("--tune", action="store_true")
 
     args = parser.parse_args()
     model_type = args.model
-    is_evaluating = args.evaluate
-    is_tuning = args.tune
 
     train_data = pd.read_csv("./data/splits/train.csv")
     test_data = pd.read_csv("./data/splits/test.csv")
@@ -30,56 +26,36 @@ def main():
     dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
 
     if model_type == "lstm":
-        if is_evaluating:
-            params = {
-                "lstm_layers": [{"bidirectional": True, "units": 480}],
-                "fc_layers": [{"units": 656, "dropout_p": 0.7}],
-                "early_stopping": {"patience": 10, "verbose": 1},
-                "scheduler": {"initial_learning_rate": 0.0001, "decay_steps": 25},
-                "optimizer": {"name": "adam", "beta_1": 0.9, "beta_2": 0.999},
-                "misc": {"epochs": 500, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5"}
-            }
+        params = {
+            "lstm_layers": [{"bidirectional": True, "units": 480}],
+            "fc_layers": [{"units": 656, "dropout_p": 0.7}],
+            "early_stopping": {"patience": 10, "verbose": 1},
+            "scheduler": {"initial_learning_rate": 0.0001, "decay_steps": 25},
+            "optimizer": {"name": "adam", "beta_1": 0.67, "beta_2": 0.92},
+            "misc": {"epochs": 500, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5"}
+        }
 
-            glove = GloVeEmbedding(f"./data/embeddings/glove.840B.300d.txt", dimensionality=300)
-            model = LSTM(dataset, embedding=glove, params=params)
-            model.fit()
-            model.evaluate(verbose=True)
+        glove = GloVeEmbedding(f"./data/embeddings/glove.840B.300d.txt", dimensionality=300)
+        model = LSTM(dataset, embedding=glove, params=params)
+        model.fit()
+        model.evaluate(verbose=True)
 
     elif model_type == "knn":
         with open("./results/knn/knn_results.json") as file:
             knn_results = json.load(file)
-        if is_evaluating:
-            best_params = knn_results["tuning"]["best_params"]
-            model = kNN(dataset, best_params)
-            model.fit(use_val=True)
-            model.evaluate(verbose=True)
-            model.plot_confusion_matrix(show=True)
-        elif is_tuning:
-            param_space = knn_results["tuning"]["param_space"]
-            model = kNN(dataset, {})
-            best_params = model.tune(param_space, n_jobs=None, verbose=True)
-            model = kNN(dataset, best_params)
-            model.fit(use_val=True)
-            model.evaluate(verbose=True)
-            model.plot_confusion_matrix(show=True)
+        best_params = knn_results["tuning"]["best_params"]
+        model = kNN(dataset, best_params)
+        model.fit(use_val=True)
+        model.evaluate(verbose=True)
+        model.plot_confusion_matrix(show=True)
     elif model_type == "svm":
         with open("./results/svm/svm_results.json") as file:
             svm_results = json.load(file)
-        if is_evaluating:
-            best_params = svm_results["tuning"]["best_params"]
-            model = SVM(dataset, best_params)
-            model.fit(use_val=True)
-            model.evaluate(verbose=True)
-            model.plot_confusion_matrix(show=True)
-        elif is_tuning:
-            param_space = svm_results["tuning"]["param_space"]
-            model = SVM(dataset, {})
-            best_params = model.tune(param_space, n_jobs=None, verbose=True)
-            model = SVM(dataset, best_params)
-            model.fit(use_val=True)
-            model.evaluate(verbose=True)
-            model.plot_confusion_matrix(show=True)
-
+        best_params = svm_results["tuning"]["best_params"]
+        model = SVM(dataset, best_params)
+        model.fit(use_val=True)
+        model.evaluate(verbose=True)
+        model.plot_confusion_matrix(show=True)
 
 # dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, val_split=0.2, shuffle=True)
 # glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt", dimensionality=100)

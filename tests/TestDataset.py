@@ -1,6 +1,8 @@
 import os
 import unittest
 
+import pandas as pd
+
 from data.Dataset import Dataset
 from data.PreprocessingPipeline import PreprocessingPipeline
 
@@ -83,3 +85,11 @@ class TestDataset(unittest.TestCase):
         print(len_val)
         print(len_test)
         print(len_train + len_val + len_test)
+
+    def test_n_labels(self):
+        train_data = pd.read_csv("../data/splits/train.csv")
+        test_data = pd.read_csv("../data/splits/test.csv")
+        val_data = pd.read_csv("../data/splits/val.csv")
+        pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
+        self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
+        print(self.dataset.train["label"].nunique())

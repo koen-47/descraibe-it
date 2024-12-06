@@ -64,13 +64,15 @@ class GloVeEmbedding:
         plt.figure(figsize=(8, 8))
         for i, word in enumerate(words):
             x, y = embedding_vectors_2d[i, :]
-            color = "blue" if special_words is not None else None
+            color = "#459abd" if special_words is not None else None
             if special_words is not None and word in special_words:
-                plt.scatter(x, y, color="red")
+                plt.scatter(x, y, color="#ff4747")
+                plt.annotate(word, (x, y), xytext=(5, 2.5), textcoords="offset points", ha="right", va="bottom")
             else:
                 plt.scatter(x, y, color=color)
-            plt.annotate(word, (x, y), xytext=(5, 2), textcoords="offset points", ha="right", va="bottom")
 
+        plt.xlabel("Embedding #1")
+        plt.ylabel("Embedding #2")
         plt.show()
 
     # def calculate_k_words_max_min_distance(self, words, k, n=100):

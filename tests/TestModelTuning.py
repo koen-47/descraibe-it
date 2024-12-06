@@ -84,27 +84,27 @@ class TestModelTuning(unittest.TestCase):
 
         param_space = {
             "architecture": {
-                "n_lstm_units": {"min": 480, "max": 480, "step": 32},
-                "n_fc_layers": {"min": 1, "max": 1, "step": 1},
-                "n_fc_units": {"min": 656, "max": 656, "step": 64},
-                "dropout_p": {"min": 0.7, "max": 0.7, "step": 0.1}
+                "n_lstm_units": {"min": 64, "max": 512, "step": 64},
+                "n_fc_layers": {"min": 1, "max": 2, "step": 1},
+                "n_fc_units": {"min": 128, "max": 1024, "step": 128},
+                "dropout_p": {"min": 0.1, "max": 0.7, "step": 0.2}
             },
             "optimizer": {
-                "scheduler": {
-                    "initial_lr": {"min": 1e-4, "max": 1e-3},
-                    "decay_steps": {"min": 25, "max": 250, "step": 25},
-                },
-                # "adam": {
-                #     "beta_1": {"min": 0., "max": 0.999},
-                #     "beta_2": {"min": 0.9, "max": 0.9999},
+                # "scheduler": {
+                #     "initial_lr": {"min": 1e-4, "max": 1e-3},
+                #     "decay_steps": {"min": 25, "max": 250, "step": 25},
                 # },
-                "sgd": {
-                    "momentum": {"min": 0., "max": 0.999},
-                }
+                "adam": {
+                    "beta_1": {"min": 0.9, "max": 0.9},
+                    "beta_2": {"min": 0.999, "max": 0.999},
+                },
+                # "sgd": {
+                #     "momentum": {"min": 0., "max": 0.999},
+                # }
             }
         }
 
-        model.tune(n_trials=40, param_space=param_space)
+        model.tune(n_trials=50, param_space=param_space, save=f"../results/lstm/lstm_results_arch_1.json")
 
     def test_tf_gpu(self):
         from tensorflow.python.client import device_lib

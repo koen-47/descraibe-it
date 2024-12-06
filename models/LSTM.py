@@ -231,15 +231,18 @@ class LSTM(Model):
 
         optimizer = None
         param_optim = self.__param_space["optimizer"]
-        param_scheduler = param_optim["scheduler"]
-        initial_lr = trial.suggest_float("lr", param_scheduler["initial_lr"]["min"],
-                                         param_scheduler["initial_lr"]["max"])
-        decay_steps = trial.suggest_int("decay_steps", param_scheduler["decay_steps"]["min"],
-                                        param_scheduler["decay_steps"]["max"],
-                                        step=param_scheduler["decay_steps"]["step"])
-        params["optimizer"]["scheduler"]["initial_lr"] = initial_lr
-        params["optimizer"]["scheduler"]["decay_steps"] = decay_steps
-        lr_scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
+        lr_scheduler = 0.0001
+
+        if "scheduler" in param_optim:
+            param_scheduler = param_optim["scheduler"]
+            initial_lr = trial.suggest_float("lr", param_scheduler["initial_lr"]["min"],
+                                             param_scheduler["initial_lr"]["max"])
+            decay_steps = trial.suggest_int("decay_steps", param_scheduler["decay_steps"]["min"],
+                                            param_scheduler["decay_steps"]["max"],
+                                            step=param_scheduler["decay_steps"]["step"])
+            params["optimizer"]["scheduler"]["initial_lr"] = initial_lr
+            params["optimizer"]["scheduler"]["decay_steps"] = decay_steps
+            lr_scheduler = CosineDecay(initial_learning_rate=initial_lr, decay_steps=decay_steps)
 
         if "adam" in param_optim:
             param_adam = param_optim["adam"]
@@ -257,7 +260,7 @@ class LSTM(Model):
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["acc"])
         return model, params
 
-    def __objective(self, trial, results):
+    def __objective(self, trial, results, save=""):
         x_train = self.__tokenizer.texts_to_sequences(self.__train["description"])
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
         y_train = np.array(self.__train["label"])
@@ -277,12 +280,12 @@ class LSTM(Model):
             results["best_params"] = params
             results["best_score"] = score
 
-        with open(f"{os.path.dirname(__file__)}/../results/lstm/lstm_results_sgd_1.json", "w") as file:
+        with open(save, "w") as file:
             json.dump(results, file, indent=3)
 
         return score
 
-    def tune(self, n_trials, param_space):
+    def tune(self, n_trials, param_space, save=""):
         self.__param_space = param_space
         study = optuna.create_study()
         results = {
@@ -291,7 +294,7 @@ class LSTM(Model):
             "best_params": {},
             "best_score": math.inf
         }
-        objective = functools.partial(self.__objective, results=results)
+        objective = functools.partial(self.__objective, results=results, save=save)
         study.optimize(objective, n_trials=n_trials)
         print(study.best_params)
         return study.best_params

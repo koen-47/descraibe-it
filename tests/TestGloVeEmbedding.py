@@ -116,7 +116,7 @@ class TestGloVeEmbedding6B100d(unittest.TestCase):
 
 class TestGloVeEmbedding840B300d(unittest.TestCase):
     def setUp(self) -> None:
-        self.embeddings = GloVeEmbedding("../data/embeddings/glove.840B.300d.txt")
+        self.embeddings = GloVeEmbedding("../data/embeddings/glove.840B.300d.txt", dimensionality=300)
 
     def test_visualize_words_20(self):
         words = load_categories("../data/saved/categories_20.txt")
@@ -153,7 +153,7 @@ class TestGloVeEmbedding840B300d(unittest.TestCase):
     def test_temp(self):
         words = load_categories("../data/saved/categories_289.txt")
         embedding_word_vectors = {word: self.embeddings.embedding_index[word] for word in words}
-        subset = find_maximal_subset(embedding_word_vectors, k=100)
+        subset = find_maximal_subset(embedding_word_vectors, k=25)
         min_distance = self.embeddings.calculate_min_distance_between_words(subset)
         print(subset)
         print(min_distance)
@@ -161,4 +161,4 @@ class TestGloVeEmbedding840B300d(unittest.TestCase):
         for chunk in chunks:
             print(chunk)
 
-        # self.embeddings.visualize_words(words, special_words=subset)
+        self.embeddings.visualize_words(words, special_words=subset)
