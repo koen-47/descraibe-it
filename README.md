@@ -24,11 +24,10 @@ First, we select the [words](https://github.com/googlecreativelab/quickdraw-data
 As our approach to word selection is based on word embeddings, we remove all [entries](./data/saved/categories_289.txt) consisting of more than one word to ensure we can compare
 the embeddings with each other.
 
-From these remaining words, we aim to find the subset of words that maximizes the 
-semantic differences between them. This is performed by finding the subset of words that
+From these remaining words, we aim to find the subset of words that is as semantically diverse as possible. This involves selecting the subset of words that
 maximizes the minimum distance of the embeddings associated with each word. More formally, for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
 distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w \in W$.
-The subset $W'$ should satisfy the following equation:
+The subset $W'$ should satisfy the following:
 
 $$
 \mathop{\max} \left( \mathop{\min}\limits_{w_i, w_j \in W' \atop i \neq j} d \left( e(w_i), e(w_j) \right) \right)
