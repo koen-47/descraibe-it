@@ -43,6 +43,27 @@ The [final set of selected words](./data/saved/categories_25.txt) are visualized
 
 
 #### Data Collection
+For each of the selected 25 words, we prompt ChatGPT for a textual description of the given word. The prompt template used for ChatGPT is parameterized across five aspects. The template is the following:
+
+```diff
+Give me [length] [detail] unique descriptions of [word]. Do not include the word [word] or any of its variations in your response. Use [complexity] language in your response. Start all your responses with [prefix].
+```
+
+The prompt used for ChatGPT is parameterized across five aspects:
+- Word: the given word that needs to be described by ChatGPT.
+- Length: number of descriptions to generate per prompt for a given word. It will always generate 20 descriptions.
+- Level of detail: length of each description for a given word. The possible values are: <em>very simple</em>, <em>simple</em>, <em>long</em>, <em>very long</em>, or blank (i.e., not specified).
+- Complexity: type of diction used in each description for a given word (e.g., sophisticated vs. simple). The possible values are: <em>very simple</em>, <em>simple</em>, <em>complex</em>, <em>very complex</em>, or blank (i.e., not specified).
+- Prefix: the first word that needs to be used in the description (designed to encourage difference sentence structures). The possible values are: <em>it</em>, <em>this</em>, <em>a</em>, <em>the</em>, <em>with</em>, or blank (i.e., not specified). If the prefix is blank, then the last sentence in the prompt template is also removed.
+- Temperature: value of the temperature variable used in call to ChatGPT's API. The possible values are: 0.2, 0.6, or 1.
+
+We compute all possible combinations of these parameters for each word to generate [7200 descriptions per word](./data/saved/raw_descriptions.csv) (180,000 in total). 
+The chosen sample size per word is based on MNIST (7000 images per digit) and is intended to enable to validity of the 
+more data hungry neural models. The reason why only 25 words are chosen is due to prohibitively high time and resource
+costs incurred by accessing the OpenAI API for large scale purposes.
+
+
+#### Data Preparation
 
 ### Model Development
 

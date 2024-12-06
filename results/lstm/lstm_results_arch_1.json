@@ -54,13 +54,32 @@
             }
          },
          "score": 0.21325816214084625
+      },
+      {
+         "params": {
+            "architecture": {
+               "n_lstm_units": 448,
+               "n_fc_layers": 1,
+               "n_fc_units": 384,
+               "dropout_p": 0.30000000000000004
+            },
+            "optimizer": {
+               "scheduler": {},
+               "adam": {
+                  "beta_1": 0.9,
+                  "beta_2": 0.999
+               },
+               "sgd": {}
+            }
+         },
+         "score": 0.15937486290931702
       }
    ],
    "best_params": {
       "architecture": {
-         "n_lstm_units": 128,
-         "n_fc_layers": 2,
-         "n_fc_units": 1024,
+         "n_lstm_units": 448,
+         "n_fc_layers": 1,
+         "n_fc_units": 384,
          "dropout_p": 0.30000000000000004
       },
       "optimizer": {
@@ -72,5 +91,5 @@
          "sgd": {}
       }
    },
-   "best_score": 0.21325816214084625
+   "best_score": 0.15937486290931702
 }
