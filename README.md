@@ -27,7 +27,7 @@ for the set of embeddings $E$, we want to find the subset of embeddings $E' \sub
 that adhere to the following equation:
 
 $$
-\hat{\theta}^{MLE}=\underset{a}{\operatorname{\argmax}} P(D|\theta) = \frac{a_1}{a_1+a_0}
+\theta_t^* = \mathop{\arg \min}\limits_{\theta_t \in \Theta} \mathbb{E}
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
