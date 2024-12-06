@@ -28,7 +28,7 @@ maximizes the minimum distance of the embeddings associated with each word.
 
 More formally, 
 for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
-distance function $d(e(i), e(j))$, where $e(w)$ returns the embedding associated with word $w$.
+distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w$.
 The subset $W'$ should satisfy the following equation:
 
 $$
