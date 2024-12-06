@@ -20,14 +20,14 @@ a computer vision alternative which uses doodles instead of text descriptions.
 First, we select the [words](https://github.com/googlecreativelab/quickdraw-dataset/blob/master/categories.txt) used in that game.
 As our approach to word selection is based on word embeddings, we remove all [entries](./data/saved/categories_289.txt) consisting of more than one word to ensure we can compare
 the embeddings with each other.
-From these remaining words, we aim to take a subset of words that are most 
-different to each other. That is, we aim to maximize the minimum distance 
+From these remaining words, we aim to take a subset of words that maximize the semantic differences between them.
+That is, we aim to maximize the minimum distance 
 between the embeddings associated with each word. More formally, 
-for the set of embeddings $E$, we want to find the subset of embeddings $E' \subset E$
-that adhere to the following equation:
+for the set of embeddings $E$, we want to find the subset of embeddings $E' \subset E$ using the Euclidean
+distance function $d(e_i, e_j)$ between embeddings $e_i$ and $e_j$ expressed by the following equation:
 
 $$
-\theta_t^* = \mathop{\arg \min}\limits_{\theta_t \in \Theta} \mathbb{E}
+\E' = \mathop{\arg \max}\limits_{i \neq j} \min d(e_i, e_j)
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
