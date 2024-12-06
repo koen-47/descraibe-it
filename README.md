@@ -32,9 +32,10 @@ The subset $W'$ should satisfy the following equation:
 
 $$
 \mathop{\max} \mathop{\min}\limits_{\begin{array}{c}
-w_i, w_j \in W' \\
+w_i, w_j \in W' \\[-3pt]
 i \neq j
-\end{array}} d(e(w_i), e(w_j))$$
+\end{array}} d(e(w_i), e(w_j))
+$$
 
 This problem is known as the [<em>max-min diversity problem</em>](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=51f97d822ec695f5700ac353bfff285bd44ef0e7) and is considered NP-hard. 
 As such, we use a greedy algorithm that approximates the optimal subset. The size of this subset is 25 words (see below for explanation) and the embeddings we use are [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors).
