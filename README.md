@@ -25,7 +25,7 @@ As our approach to word selection is based on word embeddings, we remove all [en
 the embeddings with each other.
 
 From these remaining words, we further narrow them down to a subset of 25. This is done in the interest of 
-the time and resource costs incurred by using OpenAI's API for large scale purposes, as many samples per word will be 
+the time and resource costs incurred by using OpenAI's API for large scale purposes, as many descriptions per word will be 
 needed to accurately and fairly evaluate the validity of the more data hungry neural models. 
 
 To select a suitable set of 25 words, we aim to create as semantically a diverse subset as possible.
