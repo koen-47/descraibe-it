@@ -1,5 +1,5 @@
 <div align="center">
-<h1>descr<span style="color: #ff4747">AI</span>be it</h1>
+${\textsf{\color{lightgreen}Green}}$
 </div>
 
 ## Installation
