@@ -32,7 +32,7 @@ distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associ
 The subset $W'$ should satisfy the following equation:
 
 $$
-\mathop{\max} \mathop{\min}\limits_{w_i, w_j \in W, i \neq j} d(e(i), e(i))
+\mathop{\max} \mathop{\min}\limits_{w_i, w_j \in W, i \neq j} d(e(w_i), e(w_j))
 $$
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
