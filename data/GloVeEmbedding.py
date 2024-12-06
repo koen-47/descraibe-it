@@ -2,10 +2,12 @@ import os
 import random
 
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.manifold import TSNE
 import numpy as np
 from scipy.spatial.distance import euclidean
 from tqdm import tqdm
+import seaborn as sns
 
 
 class GloVeEmbedding:
@@ -56,24 +58,52 @@ class GloVeEmbedding:
                 embedding_matrix[i] = embedding_vector
         return embedding_matrix
 
-    def visualize_words(self, words, special_words=None):
+    def visualize_words(self, words, special_words=None, dark_mode=True):
         tsne = TSNE(n_components=2, random_state=0, perplexity=len(words) - 1)
         embedding_vectors = np.array([self.embedding_index[word] for word in words])
         embedding_vectors_2d = tsne.fit_transform(embedding_vectors)
 
-        plt.figure(figsize=(8, 8))
-        for i, word in enumerate(words):
-            x, y = embedding_vectors_2d[i, :]
-            color = "#459abd" if special_words is not None else None
-            if special_words is not None and word in special_words:
-                plt.scatter(x, y, color="#ff4747")
-                plt.annotate(word, (x, y), xytext=(5, 2.5), textcoords="offset points", ha="right", va="bottom")
-            else:
-                plt.scatter(x, y, color=color)
+        plot_data = pd.DataFrame({
+            'x': embedding_vectors_2d[:, 0],
+            'y': embedding_vectors_2d[:, 1],
+            'word': words,
+            'color': ['#ff4747' if special_words is not None and word in special_words else '#459abd' for word in words]
+        })
+
+        fig = plt.figure(figsize=(12, 8))
+        sns.set(font_scale=1.15)
+        ax = sns.scatterplot(
+            data=plot_data,
+            x='x',
+            y='y',
+            hue='color',
+            palette={c: c for c in plot_data['color'].unique()},
+            legend=False,
+            alpha=0.8
+        )
+
+        color = "#0d1117" if not dark_mode else "#F0F6FC"
+        if special_words is not None:
+            for _, row in plot_data.iterrows():
+                if row['word'] in special_words:
+                    plt.annotate(row['word'], (row['x'], row['y']), xytext=(5, 2.5),
+                                 textcoords="offset points", ha="right", va="bottom", color=color)
+
+        ax.spines["bottom"].set_color(color)
+        ax.spines["left"].set_color(color)
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.get_xaxis().tick_bottom()
+        ax.get_yaxis().tick_left()
+        ax.xaxis.label.set_color(color)
+        ax.yaxis.label.set_color(color)
+        ax.tick_params(axis="x", colors=color)
+        ax.tick_params(axis="y", colors=color)
+        ax.grid(False)
 
         plt.xlabel("Embedding #1")
         plt.ylabel("Embedding #2")
-        plt.show()
+        plt.savefig(f"../data/resources/word_selection_plot_{'dark' if dark_mode else 'light'}.png", transparent=True)
 
     # def calculate_k_words_max_min_distance(self, words, k, n=100):
     #     embedding_word_vectors = {word: self.embedding_index[word] for word in words}

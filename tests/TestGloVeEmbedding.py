@@ -116,7 +116,8 @@ class TestGloVeEmbedding6B100d(unittest.TestCase):
 
 class TestGloVeEmbedding840B300d(unittest.TestCase):
     def setUp(self) -> None:
-        self.embeddings = GloVeEmbedding("../data/embeddings/glove.840B.300d.txt", dimensionality=300)
+        # self.embeddings = GloVeEmbedding("../data/embeddings/glove.840B.300d.txt", dimensionality=300)
+        self.embeddings = GloVeEmbedding("../data/embeddings/glove.6B.100d.txt", dimensionality=100)
 
     def test_visualize_words_20(self):
         words = load_categories("../data/saved/categories_20.txt")
