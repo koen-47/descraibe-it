@@ -64,10 +64,11 @@ class GloVeEmbedding:
         embedding_vectors_2d = tsne.fit_transform(embedding_vectors)
 
         plot_data = pd.DataFrame({
-            'x': embedding_vectors_2d[:, 0],
-            'y': embedding_vectors_2d[:, 1],
-            'word': words,
-            'color': ['#ff4747' if special_words is not None and word in special_words else '#459abd' for word in words]
+            "x": embedding_vectors_2d[:, 0],
+            "y": embedding_vectors_2d[:, 1],
+            "word": words,
+            'color': ['#ff4747' if special_words is not None and word in special_words else '#459abd' for word in words],
+            "alpha": [0.75 if special_words is not None and word in special_words else 0.25 for word in words]
         })
 
         fig = plt.figure(figsize=(12, 8))
@@ -79,15 +80,15 @@ class GloVeEmbedding:
             hue='color',
             palette={c: c for c in plot_data['color'].unique()},
             legend=False,
-            alpha=0.8
+            alpha=plot_data["alpha"]
         )
 
         color = "#0d1117" if not dark_mode else "#F0F6FC"
         if special_words is not None:
             for _, row in plot_data.iterrows():
                 if row['word'] in special_words:
-                    plt.annotate(row['word'], (row['x'], row['y']), xytext=(5, 2.5),
-                                 textcoords="offset points", ha="right", va="bottom", color=color)
+                    plt.annotate(row['word'], (row['x'], row['y']), xytext=(0, 12),
+                                 textcoords="offset points", ha="center", va="center", color=color)
 
         ax.spines["bottom"].set_color(color)
         ax.spines["left"].set_color(color)
