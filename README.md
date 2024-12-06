@@ -1,5 +1,5 @@
 <div align="center">
-<h1>descr<span style="color: rgb(255, 71, 71)">AI</span>be it</h1>
+<h1>descr<span style="color: #ff4747">AI</span>be it</h1>
 </div>
 
 ## Installation
@@ -34,9 +34,12 @@ $$
 This problem is known as the [<em>max-min diversity problem</em>](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=51f97d822ec695f5700ac353bfff285bd44ef0e7) and is considered NP-hard. 
 As such, we use a greedy algorithm that approximates the optimal subset. The size of this subset is 25 words (see below for explanation) and the embeddings we use are [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors).
 
-The final set of selected words are visualized below using 2 t-SNE embeddings (perplexity is 24). 
+The [final set of selected words](./data/saved/categories_25.txt) are visualized below using t-SNE (2 components, perplexity is 24). 
 
 ![asdf](./data/resources/descraibe-it_word_selection.png)
+
+
+#### Data Collection
 
 ### Model Development
 
