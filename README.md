@@ -43,13 +43,13 @@ The [final set of selected words](./data/saved/categories_25.txt) are visualized
 
 
 #### Data Collection
-For each of the selected 25 words, we prompt ChatGPT for a textual description of the given word. The prompt template used for ChatGPT is parameterized across five aspects. The template is the following:
+For each of the selected 25 words, we [prompt ChatGPT](./data/PromptManager.py) for a textual description of the given word. The prompt template used for ChatGPT is parameterized across six aspects. The template is as follows:
 
 ```diff
 Give me [length] [detail] unique descriptions of [word]. Do not include the word [word] or any of its variations in your response. Use [complexity] language in your response. Start all your responses with [prefix].
 ```
 
-The prompt used for ChatGPT is parameterized across five aspects:
+The various 
 - Word: the given word that needs to be described by ChatGPT.
 - Length: number of descriptions to generate per prompt for a given word. It will always generate 20 descriptions.
 - Level of detail: length of each description for a given word. The possible values are: <em>very simple</em>, <em>simple</em>, <em>long</em>, <em>very long</em>, or blank (i.e., not specified).
@@ -64,6 +64,7 @@ costs incurred by accessing the OpenAI API for large scale purposes.
 
 
 #### Data Preparation
+
 
 ### Model Development
 
