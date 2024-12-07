@@ -72,7 +72,7 @@ class GloVeEmbedding:
         })
 
         fig = plt.figure(figsize=(12, 8))
-        sns.set(font_scale=1.15)
+        sns.set(font_scale=1.1)
         ax = sns.scatterplot(
             data=plot_data,
             x='x',

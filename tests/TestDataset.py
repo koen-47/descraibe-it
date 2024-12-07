@@ -93,3 +93,9 @@ class TestDataset(unittest.TestCase):
         pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
         self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
         print(self.dataset.train["label"].nunique())
+
+        n_total_data = len(train_data) + len(test_data) + len(val_data)
+        print(len(train_data) / n_total_data, len(train_data))
+        print(len(test_data) / n_total_data, len(test_data))
+        print(len(val_data) / n_total_data, len(val_data))
+        print(n_total_data)

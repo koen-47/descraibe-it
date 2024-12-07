@@ -53,7 +53,7 @@ For each of the selected 25 words, we [prompt ChatGPT](./data/PromptManager.py) 
 Give me [length] [detail] unique descriptions of [word]. Do not include the word [word] or any of its variations in your response. Use [complexity] language in your response. Start all your responses with [prefix].
 ```
 
-The various 
+The six parameters included in the template:
 - Word: the given word that needs to be described by ChatGPT.
 - Length: number of descriptions to generate per prompt for a given word. It will always generate 20 descriptions.
 - Level of detail: length of each description for a given word. The possible values are: <em>very simple</em>, <em>simple</em>, <em>long</em>, <em>very long</em>, or blank (i.e., not specified).
@@ -62,12 +62,20 @@ The various
 - Temperature: value of the temperature variable used in call to ChatGPT's API. The possible values are: 0.2, 0.6, or 1.
 
 We compute all possible combinations of these parameters for each word to generate [7200 descriptions per word](./data/saved/raw_descriptions.csv) (180,000 in total). 
-The chosen sample size per word is based on MNIST (7000 images per digit) and is intended to enable to validity of the 
-more data hungry neural models. The reason why only 25 words are chosen is due to prohibitively high time and resource
-costs incurred by accessing the OpenAI API for large scale purposes.
+The chosen sample size per word is based on MNIST (7000 images per digit).
 
 
 #### Data Preparation
+The [preprocessing pipeline](./data/PreprocessingPipeline.py) we use consists of the following sequence of steps:
+1. Making all text lowercase.
+2. Expanding all contractions (e.g., can't &rarr; can not)
+3. Removing all stopwords (e.g., a, the, it, etc.)
+4. Cleaning all text (e.g., punctuation, hyperlinks, etc.)
+
+We also remove all duplicates and use label encoding. Lemmatization was initially explored as a method for text standardization, but it 
+was ultimately discarded after experiments showed it reduced performance.
+
+The [train-test-validation](./data/splits) split is 55%-30%-15%.
 
 ### Model Development
 
