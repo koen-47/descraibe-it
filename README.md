@@ -68,9 +68,9 @@ The chosen sample size per word is based on MNIST (7000 images per digit).
 #### Data Preparation
 The [preprocessing pipeline](./data/PreprocessingPipeline.py) we use consists of the following sequence of steps:
 1. Making all text lowercase.
-2. Expanding all contractions (e.g., can't &rarr; can not)
-3. Removing all stopwords (e.g., a, the, it, etc.)
-4. Cleaning all text (e.g., punctuation, hyperlinks, etc.)
+2. Expanding all contractions (e.g., can't &rarr; can not).
+3. Removing all stopwords (e.g., a, the, it, etc.).
+4. Cleaning all text (e.g., punctuation, hyperlinks, etc.).
 
 We also remove all duplicates and use label encoding. Lemmatization was initially explored as a method for text standardization, but it 
 was ultimately discarded after experiments showed it reduced performance.
@@ -78,5 +78,67 @@ was ultimately discarded after experiments showed it reduced performance.
 The [train-test-validation](./data/splits) split is 55%-30%-15%.
 
 ### Model Development
+We experiment with three different models: a kNN, SVM and LSTM.
+
+#### Hyperparameter Tuning
+
+<table>
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th>Hyperparameter Type</th>
+            <th>Hyperparameter</th>
+            <th>Selected value</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td rowspan=2>kNN</td>
+            <td colspan="2"># neighbours</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2">Weight type</td>
+        </tr>
+        <tr>
+            <td rowspan=2>SVM</td>
+            <td colspan="2">C</td>
+        </tr>
+        <tr>
+            <td colspan="2">γ</td>
+        </tr>
+        <tr>
+            <td rowspan=9>LSTM</td>
+            <td rowspan=3>Architecture</td>
+            <td># LSTM units</td>
+        </tr>
+        <tr>
+            <td># FC layers</td>
+        </tr>
+        <tr>
+            <td># units per FC layer</td>
+        </tr>
+        <tr>
+            <td rowspan=3>LR Schedule</td>
+            <td>Scheduler</td>
+        </tr>
+        <tr>
+            <td>Initial LR</td>
+        </tr>
+        <tr>
+            <td># decay steps</td>
+        </tr>
+        <tr>
+            <td rowspan=3 style="text-align: center">Optimizer</td>
+            <td>Optimizer</td>
+        </tr>
+        <tr>
+            <td>β ₁</td>
+        </tr>
+        <tr>
+            <td>β ₂</td>
+        </tr>
+    </tbody>
+</table>
 
 ### Results
