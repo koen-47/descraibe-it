@@ -95,48 +95,60 @@ We experiment with three different models: a kNN, SVM and LSTM.
         <tr>
             <td rowspan=2>kNN</td>
             <td colspan="2"># neighbours</td>
-            <td></td>
+            <td>-</td>
         </tr>
         <tr>
             <td colspan="2">Weight type</td>
+            <td>-</td>
         </tr>
         <tr>
             <td rowspan=2>SVM</td>
             <td colspan="2">C</td>
+            <td>-</td>
         </tr>
         <tr>
             <td colspan="2">γ</td>
+            <td>-</td>
         </tr>
         <tr>
             <td rowspan=9>LSTM</td>
             <td rowspan=3>Architecture</td>
             <td># LSTM units</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># FC layers</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># units per FC layer</td>
+            <td>-</td>
         </tr>
         <tr>
             <td rowspan=3>LR Schedule</td>
             <td>Scheduler</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>Initial LR</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># decay steps</td>
+            <td>-</td>
         </tr>
         <tr>
-            <td rowspan=3 style="text-align: center">Optimizer</td>
+            <td rowspan=3>Optimizer</td>
             <td>Optimizer</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₁</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₂</td>
+            <td>-</td>
         </tr>
     </tbody>
 </table>
