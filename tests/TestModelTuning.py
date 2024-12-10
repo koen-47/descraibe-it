@@ -95,7 +95,7 @@ class TestModelTuning(unittest.TestCase):
                     "decay_steps": {"min": 25, "max": 250, "step": 25},
                 },
                 "adam": {
-                    "beta_1": {"min": 0., "max": 0.9},
+                    "beta_1": {"min": 0.8, "max": 0.9999},
                     "beta_2": {"min": 0.9, "max": 0.9999},
                 },
                 # "sgd": {
@@ -104,7 +104,7 @@ class TestModelTuning(unittest.TestCase):
             }
         }
 
-        model.tune(n_trials=100, param_space=param_space, save=f"../results/lstm/lstm_results_adam_4.json")
+        model.tune(n_trials=100, param_space=param_space, save=f"../results/lstm/lstm_results_adam_5.json")
 
     def test_tf_gpu(self):
         from tensorflow.python.client import device_lib
