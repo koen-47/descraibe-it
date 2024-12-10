@@ -158,27 +158,6 @@ class LSTM(Model):
             return accuracy, precision, recall, f1, incorrect_df
         return accuracy, precision, recall, f1
 
-    def cross_validate(self, n_splits, return_incorrect=False):
-        cv = self.__dataset.get_cv_split(n_splits=n_splits)
-        total = []
-        for data in cv:
-            x_train = data["train"]["description"]
-            y_train = data["train"]["label"]
-            x_test = data["test"]["description"]
-            y_test = data["test"]["label"]
-            model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
-            model.fit(x_train, y_train)
-            results = model.evaluate(x_test, y_test, return_incorrect=return_incorrect)
-            total.append(results)
-        scores = np.array([t[:4] for t in total])
-        avg = np.average(scores, axis=0)
-        if return_incorrect:
-            incorrect_df = pd.DataFrame()
-            for df in [t[4] for t in total]:
-                incorrect_df = pd.concat([incorrect_df, df], ignore_index=True)
-            return avg, incorrect_df
-        return avg
-
     def plot_confusion_matrix(self):
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
         test_seq = pad_sequences(test_seq, maxlen=self.__embedding.dimensionality)

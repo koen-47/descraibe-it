@@ -1,7 +1,11 @@
 import os
 import unittest
 
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from matplotlib.colors import to_rgba
 
 from data.Dataset import Dataset
 from data.PreprocessingPipeline import PreprocessingPipeline
@@ -91,7 +95,8 @@ class TestDataset(unittest.TestCase):
         test_data = pd.read_csv("../data/splits/test.csv")
         val_data = pd.read_csv("../data/splits/val.csv")
         pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
-        self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
+        self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline,
+                               encode_labels=True, drop_duplicates=True, shuffle=True)
         print(self.dataset.train["label"].nunique())
 
         n_total_data = len(train_data) + len(test_data) + len(val_data)
@@ -99,3 +104,58 @@ class TestDataset(unittest.TestCase):
         print(len(test_data) / n_total_data, len(test_data))
         print(len(val_data) / n_total_data, len(val_data))
         print(n_total_data)
+
+    def test_visualize_class_balance(self):
+        train_data = pd.read_csv("../data/splits/train.csv")
+        test_data = pd.read_csv("../data/splits/test.csv")
+        val_data = pd.read_csv("../data/splits/val.csv")
+        pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
+        self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline,
+                               encode_labels=False)
+
+        self.visualize_class_balance(self.dataset.train, self.dataset.test, self.dataset.val)
+
+    def visualize_class_balance(self, train, test, val=None, dark_mode=True):
+        train_count = train["label"].value_counts().sort_index()
+        train_count = pd.DataFrame({"Word": train_count.index, "Frequency": train_count.values})
+        test_count = test["label"].value_counts().sort_index()
+        test_count = pd.DataFrame({"Word": test_count.index, "Frequency": test_count.values})
+        val_count = val["label"].value_counts().sort_index()
+        val_count = pd.DataFrame({"Word": val_count.index, "Frequency": val_count.values})
+
+        data = pd.DataFrame({
+            "Word": train_count["Word"],
+            "Train set": train_count["Frequency"],
+            "Test set": test_count["Frequency"],
+            "Validation set": val_count["Frequency"]
+        })
+
+        fig = plt.figure(figsize=(12, 8))
+        sns.set(font_scale=1.1)
+        ax = data.set_index("Word").plot(kind="bar", stacked=True, color=["#ff4747", "#459abd", "#43b97f"], alpha=0.75)
+
+        for bars in ax.containers:
+            for bar in bars:
+                bar.set_edgecolor("#0d1117")
+                bar.set_linewidth(1.5)
+
+        color = "#0d1117" if not dark_mode else "#F0F6FC"
+        ax.spines["bottom"].set_color(color)
+        ax.spines["left"].set_color(color)
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.get_xaxis().tick_bottom()
+        ax.get_yaxis().tick_left()
+        ax.xaxis.label.set_color(color)
+        ax.yaxis.label.set_color(color)
+        ax.tick_params(axis="x", colors=color)
+        ax.tick_params(axis="y", colors=color)
+        ax.grid(False)
+
+        plt.ylim(0, 7500)
+        plt.yticks(np.arange(0, 7500, 1750))
+        plt.ylabel("Frequency")
+        plt.legend(frameon=False, labelcolor=color, ncol=3, bbox_to_anchor=(0.5, 1.02), loc="lower center")
+        plt.tight_layout()
+        plt.savefig(f"../data/resources/class_balance_chart_{'dark' if dark_mode else 'light'}.png",
+                    transparent=True)
