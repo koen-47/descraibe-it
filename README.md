@@ -77,7 +77,10 @@ was ultimately discarded after experiments showed it reduced performance.
 
 The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random split since there is a class balance, as shown below:
 
-![class_balance_plot](./data/resources/class_balance_chart_dark.png)
+<p align="center">
+  <img src="./data/resources/class_balance_chart_dark.png" />
+</p>
+
 
 ### Model Development
 We experiment with three different models: a kNN, SVM and LSTM.
