@@ -1,3 +1,7 @@
+"""
+File to handle all functionality related to GloVe embeddings.
+"""
+
 import numpy as np
 from tqdm import tqdm
 
@@ -22,16 +26,25 @@ class GloVeEmbedding:
         :param file_path: File path to where the GloVe embeddings are stored.
         :return: Dictionary containing the word index of the GloVe embeddings file.
         """
-        embeddings_index = dict()
+
+        embeddings_index = {}
+
+        # Get number of lines in the GloVe embeddings file (for tqdm)
         with open(file_path, encoding="utf-8") as file:
             num_lines = sum(1 for _ in file)
 
+        # Open file and iterate over each embedding
         file = open(file_path, encoding="utf8")
         for line in tqdm(file, total=num_lines, desc="Loading GloVe embedding"):
+            # Get word -> embedding
             values = line.strip().split(" ")
             word = values[0]
+
+            # Store embedding
             coefs = np.asarray(values[1:], dtype="float32")
             embeddings_index[word] = coefs
+
+        # Close embeddings file and return embeddings mapping
         file.close()
         return embeddings_index
 
@@ -51,5 +64,10 @@ class GloVeEmbedding:
         return embedding_matrix
 
     def __getitem__(self, item):
+        """
+        Gets the embedding associated with a specified word.
+        :param item: word to index
+        :return: embedding associated with the specified word.
+        """
         return self.embedding_index[item]
 

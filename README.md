@@ -87,12 +87,19 @@ We experiment with three different models: a kNN, SVM and LSTM.
 
 #### Hyperparameter Tuning
 
+We use Grid Search (kNN, SVM) and Bayesian Optimization (LSTM) to perform hyperparameter tuning.
+The method used is determined by the number of hyperparameters, where Grid Search
+is used for smaller search spaces and Bayesian Optimization is used for larger ones.
+
+
 <table>
     <thead>
         <tr>
             <th>Model</th>
             <th>Hyperparameter Type</th>
             <th>Hyperparameter</th>
+            <th>Tuning Method</th>
+            <th>Range</th>
             <th>Selected value</th>
         </tr>
     </thead>
@@ -100,16 +107,19 @@ We experiment with three different models: a kNN, SVM and LSTM.
         <tr>
             <td rowspan=2>kNN</td>
             <td colspan="2"># neighbours</td>
-            <td>-</td>
+            <td rowspan="2">Grid Search</td>
+            <td>{1, 2, ..., 50}</td>
+            <td>35</td>
         </tr>
         <tr>
             <td colspan="2">Weight type</td>
-            <td>-</td>
+             <td>{distance, uniform}</td>
+            <td>distance</td>
         </tr>
         <tr>
             <td rowspan=2>SVM</td>
             <td colspan="2">C</td>
-            <td>-</td>
+            <td rowspan="2">Grid Search</td>
         </tr>
         <tr>
             <td colspan="2">γ</td>
@@ -119,7 +129,7 @@ We experiment with three different models: a kNN, SVM and LSTM.
             <td rowspan=9>LSTM</td>
             <td rowspan=3>Architecture</td>
             <td># LSTM units</td>
-            <td>-</td>
+            <td rowspan="9">Bayesian Optimization</td>
         </tr>
         <tr>
             <td># FC layers</td>

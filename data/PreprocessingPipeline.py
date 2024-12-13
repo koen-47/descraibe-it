@@ -1,3 +1,7 @@
+"""
+File to handle all functionality necessary to preprocess the descriptions of each word.
+"""
+
 import json
 import os.path
 import re
@@ -7,21 +11,40 @@ import pandas as pd
 import nltk
 from tqdm import tqdm
 
+# Download datasets from NLTK to help during preprocessing
 nltk.download('punkt', quiet=True)
 nltk.download('punkt_tab', quiet=True)
 nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 
 class PreprocessingPipeline:
+    """
+    Preprocessing pipeline that handles all functionality to preprocess the descriptions of each word.
+    """
     def __init__(self, pipeline, dataset=None, feature="description", shuffle=True):
+        """
+        Constructor for the PreprocessingPipeline class.
+
+        :param pipeline: list of strings denoting which preprocessing operations to perform and in which order.
+        These operations are either: [make_lowercase, clean_text, remove_stopwords, expand_contractions, lemmatize].
+        :param dataset: dataset to apply the preprocessing pipeline to (Dataset object)
+        :param feature: target feature of the dataset object to apply the preprocessing pipeline to.
+        :param shuffle: Boolean to indicate if the dataset will be shuffled during preprocessing.
+        """
         self.dataset = dataset
         self.pipeline = pipeline
         self.feature = feature
 
+        # Shuffle dataset (if specified)
         if shuffle and dataset is not None:
             self.dataset = self.dataset.sample(frac=1, random_state=42).reset_index(drop=True)
 
     def apply(self, x=None):
+        """
+        Applies the preprocessing pipeline to the target feature of the dataset, or to a specified value.
+        :param x: specified value to apply the preprocessing pipeline to.
+        :return: preprocessed dataset or specified value.
+        """
         if x is None:
             for process_type in self.pipeline:
                 self.dataset[self.feature] = self.__preprocess(self.dataset[self.feature], process_type)
@@ -32,6 +55,12 @@ class PreprocessingPipeline:
             return x
 
     def __preprocess(self, data, process_type):
+        """
+        Helper function that maps each string for a preprocessing step to its corresponding operation.
+        :param data: data to apply the preprocessing pipeline to.
+        :param process_type: type of operation to apply.
+        :return: list of preprocessed data according to the specified operation to apply.
+        """
         if process_type == "make_lowercase":
             return self.__make_lowercase(data)
         elif process_type == "clean_text":
@@ -44,6 +73,11 @@ class PreprocessingPipeline:
             return self.__lemmatize(data)
 
     def __make_lowercase(self, data):
+        """
+        Converts the specified list of data to lowercase text.
+        :param data: list of data to turn to lowercase text.
+        :return: list of data that is converted to lowercase text.
+        """
         lowercase = []
         for sentence in tqdm(data, desc="Converting to lowercase"):
             sentence = sentence.lower()
@@ -51,6 +85,11 @@ class PreprocessingPipeline:
         return lowercase
 
     def __clean_text(self, data):
+        """
+        Cleans the text by removing punctuation, hyperlinks, etc.
+        :param data: list of strings to clean.
+        :return: list of cleaned strings.
+        """
         clean_text = []
         for sentence in tqdm(data, desc="Cleaning text"):
             sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
