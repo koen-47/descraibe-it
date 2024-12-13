@@ -113,17 +113,20 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
         </tr>
         <tr>
             <td colspan="2">Weight type</td>
-             <td>{distance, uniform}</td>
+            <td>{distance, uniform}</td>
             <td>distance</td>
         </tr>
         <tr>
             <td rowspan=2>SVM</td>
             <td colspan="2">C</td>
             <td rowspan="2">Grid Search</td>
+            <td>{0.1, 1, ..., 1000}</td>
+            <td>10</td>
         </tr>
         <tr>
             <td colspan="2">γ</td>
-            <td>-</td>
+            <td>{0.0001, 0.001, ..., 10}</td>
+            <td>1</td>
         </tr>
         <tr>
             <td rowspan=9>LSTM</td>
