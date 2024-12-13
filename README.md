@@ -98,7 +98,8 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
             <th>Model</th>
             <th>Hyperparameter Type</th>
             <th>Hyperparameter</th>
-            <th>Tuning Method</th>
+            <th><pre>Tuning
+Method</pre></th>
             <th>Range</th>
             <th>Selected value</th>
         </tr>
