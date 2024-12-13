@@ -125,7 +125,7 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
         </tr>
         <tr>
             <td colspan="2">γ</td>
-            <td>{0.0001, 0.001, ..., 10}</td>
+            <td>{10e-4, 10e-3, ..., 10}</td>
             <td>1</td>
         </tr>
         <tr>
