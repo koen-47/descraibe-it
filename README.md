@@ -158,26 +158,32 @@ Method<span></span></th>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">LR Schedule</a></td>
             <td>Scheduler</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>Initial LR</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># decay steps</td>
+            <td>-</td>
             <td>-</td>
         </tr>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₁</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₂</td>
+            <td>-</td>
             <td>-</td>
         </tr>
     </tbody>
