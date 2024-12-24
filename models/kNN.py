@@ -111,7 +111,7 @@ class kNN(Model):
         plt.subplots_adjust(bottom=0.17)
         plt.tight_layout()
         if save_filepath is not None:
-            plt.savefig(save_filepath, bbox_inches="tight")
+            plt.savefig(save_filepath, bbox_inches="tight", transparent=True)
         if show:
             plt.show()
 

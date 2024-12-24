@@ -47,7 +47,9 @@ def main():
         model = kNN(dataset, best_params)
         model.fit(use_val=True)
         model.evaluate(verbose=True)
-        model.plot_confusion_matrix(show=True)
+        # model.plot_confusion_matrix(show=True)
+        model.plot_confusion_matrix(show=True, save_filepath="./data/resources/knn_confusion_matrix_dark.png", dark_mode=True)
+        model.plot_confusion_matrix(show=True, save_filepath="./results/knn/knn_confusion_matrix.png", dark_mode=False)
     elif model_type == "svm":
         with open("./results/svm/svm_results.json") as file:
             svm_results = json.load(file)

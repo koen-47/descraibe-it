@@ -83,11 +83,13 @@ The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random 
 
 
 ### Model Development
-We experiment with three different models: a kNN, SVM and LSTM.
+We experiment with three different models: a [kNN](./models/kNN.py), [SVM](./models/SVM.py) and [LSTM](./models/LSTM.py).
 
 #### Hyperparameter Tuning
 
-We use Grid Search (kNN, SVM) and Bayesian Optimization (LSTM) to perform hyperparameter tuning.
+Due to the size of the hyperparameter space of the LSTM and to enable fair comparison between models, 
+we restrict the tuning process to a single train-validation split (as defined [here](#data-preparation)). 
+We use Grid Search (kNN, SVM) and Bayesian Optimization (LSTM).
 The method used is determined by the number of hyperparameters, where Grid Search
 is used for smaller search spaces and Bayesian Optimization is used for larger ones.
 
@@ -101,12 +103,12 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
             <th><span>Tuning</span>
 Method<span></span></th>
             <th>Range</th>
-            <th>Selected <v></v>alue</th>
+            <th>Selected Value</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td rowspan=2>kNN</td>
+            <td rowspan=2><a href="./results/knn/knn_results.json">kNN</a></td>
             <td colspan="2"># neighbours</td>
             <td rowspan="2">Grid Search</td>
             <td>{1, 2, ..., 50}</td>
@@ -118,7 +120,7 @@ Method<span></span></th>
             <td>distance</td>
         </tr>
         <tr>
-            <td rowspan=2>SVM</td>
+            <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
             <td colspan="2">C</td>
             <td rowspan="2">Grid Search</td>
             <td>{0.1, 1, ..., 1000}</td>
@@ -130,21 +132,30 @@ Method<span></span></th>
             <td>1</td>
         </tr>
         <tr>
-            <td rowspan=9>LSTM</td>
-            <td rowspan=3>Architecture</td>
+            <td rowspan=10><a href="./results/lstm">LSTM</a></td>
+            <td rowspan=4><a href="./results/lstm/lstm_results_arch_1.json">Architecture</a></td>
             <td># LSTM units</td>
-            <td rowspan="9">Bayesian Optimization</td>
+            <td rowspan="10">Bayesian Optimization</td>
+            <td>{64, 128, ..., 512}</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># FC layers</td>
+            <td>{1, 2}</td>
             <td>-</td>
         </tr>
         <tr>
             <td># units per FC layer</td>
+            <td>{128, 256, ..., 1024}</td>
             <td>-</td>
         </tr>
         <tr>
-            <td rowspan=3>LR Schedule</td>
+            <td>Dropout per layer</td>
+            <td>{0.1, 0.3, ..., 0.7}</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">LR Schedule</a></td>
             <td>Scheduler</td>
             <td>-</td>
         </tr>
@@ -157,7 +168,7 @@ Method<span></span></th>
             <td>-</td>
         </tr>
         <tr>
-            <td rowspan=3>Optimizer</td>
+            <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
             <td>-</td>
         </tr>
