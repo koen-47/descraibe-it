@@ -1,8 +1,10 @@
 import os
 import warnings
 
+# Suppress information printed by Tensorflow
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
+# Suppress DeprecationError regarding randrange (I'm not sure where this warning comes from and how to resolve it)
 warnings.simplefilter("default")
 warnings.filterwarnings(
     "ignore",
@@ -13,35 +15,24 @@ warnings.filterwarnings(
 import io
 import json
 import math
-from abc import ABC
 import random
 import functools
 
 import optuna
 import numpy as np
-import scipy
-import pickle
 import tensorflow as tf
-import pandas as pd
-from keras.callbacks import EarlyStopping, ModelCheckpoint
+from keras.callbacks import EarlyStopping
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, TextVectorization, Bidirectional, Dropout, BatchNormalization, LeakyReLU
+from tensorflow.keras.layers import Dense, Dropout
 from keras.layers import Bidirectional, LayerNormalization
 from tensorflow.keras.layers import LSTM as LSTMLayer
 from tensorflow.keras.optimizers import Adam, SGD
 from tensorflow.keras.optimizers.schedules import CosineDecay
 from tensorflow.keras.callbacks import LearningRateScheduler
-# from tensorflow.keras.saving import load_model
-from tensorflow.keras.models import load_model
-from tensorflow.keras import Input
-from keras.layers import Embedding, GlobalMaxPooling1D
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.preprocessing import LabelEncoder
-from data.GloVeEmbedding import GloVeEmbedding
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score, \
-    f1_score
+from keras.layers import Embedding
+from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, precision_score, recall_score, f1_score
 import matplotlib.pyplot as plt
 
 from models.Model import Model
@@ -52,26 +43,54 @@ random.seed(42)
 np.random.seed(42)
 
 
-
 class LSTM(Model):
+    """
+    Class to implement functionality for the LSTM model.
+    """
     def __init__(self, dataset, embedding, params, save_tokenizer=None):
+        """
+        Constructor for the LSTM model.
+        :param dataset: Dataset instance containing the whole dataset to run the LSTM on.
+        :param embedding: GloVeEmbedding instance to handle the pretrained GloVe embeddings.
+        :param params: dictionary determining the parameters of the LSTM model.
+        :param save_tokenizer: path to save the tokenizer to (used for the demo).
+        """
+
+        # Parameters for the dataset.
         self.__dataset = dataset
         self.__train = dataset.train
         self.__val = None if dataset.val is None else dataset.val
         self.__test = dataset.test
-        self.__embedding = embedding
-        self.__tokenizer = Tokenizer()
-        self.__tokenizer.fit_on_texts(self.__train["description"])
+
+        # Parameters for the model.
         self.__model = None
         self.__param_space = {}
         self.__params = params
+        self.__embedding = embedding
 
+        # Create tokenizer and fit it to the training set of the dataset.
+        self.__tokenizer = Tokenizer()
+        self.__tokenizer.fit_on_texts(self.__train["description"])
+
+        # Save the tokenizer as a JSON file (if necessary).
         if save_tokenizer is not None:
             tokenizer_json = self.__tokenizer.to_json()
             with io.open(save_tokenizer, 'w+', encoding='utf-8') as f:
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
-    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None, verbose=False):
+    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None):
+        """
+        Fits the LSTM to a (specified) dataset.
+        :param x_train: features of the training set. If not specified, it will default to the training features of the
+        dataset specified during instantiation.
+        :param y_train: labels of the training set. If not specified, it will default to the training features of the
+        dataset specified during instantiation.
+        :param x_val: features of the validation set. If not specified, it will default to the validation features of
+        the dataset specified during instantiation.
+        :param y_val: labels of the validation set. If not specified, it will default to the validation features of
+        the dataset specified during instantiation.
+        :return: history containing the training + validation loss per epoch.
+        """
         if x_train is None and y_train is None:
             x_train = self.__train["description"]
             y_train = self.__train["label"]
@@ -124,13 +143,13 @@ class LSTM(Model):
         x_val = self.__tokenizer.texts_to_sequences(x_val)
         x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
         y_val = np.array(y_val)
-        val_history = model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"],
+        history = model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"],
                                 validation_data=(x_val, y_val), epochs=self.__params["misc"]["epochs"],
                                 verbose=self.__params["misc"]["verbose"], callbacks=[es, scheduler])
 
         # model.save(self.__params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
-        return val_history
+        return history
 
     def predict(self, x):
         x = self.__dataset.clean_text(x)
@@ -164,6 +183,33 @@ class LSTM(Model):
                   f"\n- Recall: {recall:.2f}%\n- F1 score: {f1:.2f}%")
 
         return accuracy, precision, recall, f1
+
+    def cross_validate(self, n_splits, verbose=False):
+        cv = self.__dataset.get_cv_split(n_splits=n_splits, as_val=True)
+        best_accuracy, best_model = 0, None
+        results_per_split = []
+        for i, data in enumerate(cv):
+            x_train = data["train"]["description"]
+            y_train = data["train"]["label"]
+            x_test = data["test"]["description"]
+            y_test = data["test"]["label"]
+            model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
+            loss_history = model.fit(x_train, y_train, x_test, y_test)
+            accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
+            results_per_split.append({
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "train_loss_history": loss_history.history["loss"],
+                "val_loss_history": loss_history.history["val_loss"]
+            })
+            if verbose:
+                print(f"Accuracy on split {i + 1}: {accuracy:.2f}")
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_model = model
+        return best_accuracy, best_model, results_per_split
 
     def plot_confusion_matrix(self):
         test_seq = self.__tokenizer.texts_to_sequences(self.__test["description"])
@@ -270,33 +316,6 @@ class LSTM(Model):
             json.dump(results, file, indent=3)
 
         return score
-
-    def cross_validate(self, n_splits, verbose=False):
-        cv = self.__dataset.get_cv_split(n_splits=n_splits, as_val=True)
-        best_accuracy, best_model = 0, None
-        results_per_split = []
-        for i, data in enumerate(cv):
-            x_train = data["train"]["description"]
-            y_train = data["train"]["label"]
-            x_test = data["test"]["description"]
-            y_test = data["test"]["label"]
-            model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
-            loss_history = model.fit(x_train, y_train, x_test, y_test, verbose=False)
-            accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
-            results_per_split.append({
-                "accuracy": accuracy,
-                "precision": precision,
-                "recall": recall,
-                "f1": f1,
-                "train_loss_history": loss_history.history["loss"],
-                "val_loss_history": loss_history.history["val_loss"]
-            })
-            if verbose:
-                print(f"Accuracy on split {i+1}: {accuracy:.2f}")
-            if accuracy > best_accuracy:
-                best_accuracy = accuracy
-                best_model = model
-        return best_accuracy, best_model, results_per_split
 
     def tune(self, n_trials, param_space, save=""):
         self.__param_space = param_space

@@ -71,6 +71,7 @@ class SVM(Model):
     def cross_validate(self, n_splits, verbose=False):
         cv = self.__dataset.get_cv_split(n_splits=n_splits, as_val=True)
         best_accuracy, best_model = 0, None
+        results_per_split = []
         for i, data in enumerate(cv):
             x_train = data["train"]["description"]
             y_train = data["train"]["label"]
@@ -78,13 +79,19 @@ class SVM(Model):
             y_test = data["test"]["label"]
             model = SVM(self.__dataset, params=self.__params)
             model.fit(x_train, y_train)
-            accuracy = model.evaluate(x_test, y_test)[0]
+            accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
+            results_per_split.append({
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+            })
             if verbose:
                 print(f"Accuracy on split {i+1}: {accuracy:.2f}")
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
                 best_model = model
-        return best_accuracy, best_model
+        return best_accuracy, best_model, results_per_split
 
     def plot_confusion_matrix(self, use_val=False, show=True, save_filepath=None):
         y_true = self.__val["label"] if use_val else self.__test["label"]

@@ -45,11 +45,14 @@ class PreprocessingPipeline:
         :param x: specified value to apply the preprocessing pipeline to.
         :return: preprocessed dataset or specified value.
         """
+        # Check to perform preprocessing on specified parameter on the entire dataset for a specific feature.
         if x is None:
+            # Apply preprocessing to a feature in the dataset.
             for process_type in self.pipeline:
                 self.dataset[self.feature] = self.__preprocess(self.dataset[self.feature], process_type)
             return self.dataset
         else:
+            # Apply preprocessing to the specified value.
             for process_type in self.pipeline:
                 x = self.__preprocess(x, process_type)
             return x
@@ -79,9 +82,13 @@ class PreprocessingPipeline:
         :return: list of data that is converted to lowercase text.
         """
         lowercase = []
+
+        # Iterate over all entries in the specified data.
         for sentence in tqdm(data, desc="Converting to lowercase"):
+            # Convert the whole sentence to lowercase.
             sentence = sentence.lower()
             lowercase.append(sentence)
+
         return lowercase
 
     def __clean_text(self, data):
@@ -91,26 +98,49 @@ class PreprocessingPipeline:
         :return: list of cleaned strings.
         """
         clean_text = []
+
+        # Iterate over all entries in the specified data.
         for sentence in tqdm(data, desc="Cleaning text"):
+            # Remove URLs
             sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
             sentence = re.sub(r'\<a href', ' ', sentence)
+
+            # Remove ampersands
             sentence = re.sub(r'&amp;', '', sentence)
+
+            # Remove punctuation
             sentence = re.sub(r'[_"\-;%()|+&=*%.,!?:#$@\[\]/]', ' ', sentence)
+
+            # Remove HTML link breaks
             sentence = re.sub(r'<br />', ' ', sentence)
+
+            # Remove backslashes
             sentence = re.sub(r'\'', ' ', sentence)
+
+            # Remove the start of the sentence if it starts with a number followed by ')'
             sentence = re.sub(r'^(\d{1,2})(.|\)) ', '', sentence)
+
+            # Remove consecutive whitespaces
             sentence = re.sub(r'  ', ' ', sentence)
+
             clean_text.append(sentence.strip())
+
         return clean_text
 
     def __remove_stopwords(self, data):
         removed_stopwords = []
+
+        # Load a dataset of stopwords
         stops = set(stopwords.words("english"))
+
+        #  Iterate over all entries in the specified data.
         for sentence in tqdm(data, desc="Removing stopwords"):
+            # Split sentence and remove all words that are a stopword
             sentence = sentence.split()
             sentence = [w for w in sentence if not w in stops]
             sentence = " ".join(sentence)
             removed_stopwords.append(sentence)
+
         return removed_stopwords
 
     def __expand_contractions(self, data):
@@ -125,23 +155,39 @@ class PreprocessingPipeline:
         return pd.Series(expanded_contractions)
 
     def __lemmatize(self, data):
+        # Load the WordNet lemmatizer
         lemmatizer = WordNetLemmatizer()
         lemmatized = []
+
+        # Iterate over all entries in the specified data.
         for sentence in tqdm(data, desc="Lemmatizing"):
+            # Tokenize the entry using NLTK
             sentence = nltk.word_tokenize(sentence)
+
+            # Lemmatize the tokenized entry using POS tags
             sentence = [lemmatizer.lemmatize(token, self.__get_wordnet_pos(pos))
                         for token, pos in nltk.pos_tag(sentence)]
+
             sentence = " ".join(sentence)
             lemmatized.append(sentence)
         return lemmatized
 
     def __get_wordnet_pos(self, pos):
+        """
+        Helper function that maps an POS to its WordNet equivalent.
+        :param pos: POS to convert to WordNet equivalent
+        :return: WordNet POS equivalent of the specified POS.
+        """
+        # Adjectives
         if pos.startswith('J'):
             return wordnet.ADJ
+        # Verbs
         elif pos.startswith('V'):
             return wordnet.VERB
+        # Nouns
         elif pos.startswith('N'):
             return wordnet.NOUN
+        # Adverbs
         elif pos.startswith('R'):
             return wordnet.ADV
         else:

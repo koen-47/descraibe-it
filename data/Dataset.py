@@ -3,7 +3,6 @@ File to handle all necessary functionality and data handling related to the trai
 """
 
 import os
-import re
 
 import pandas as pd
 import numpy as np
@@ -132,6 +131,12 @@ class Dataset:
         return encoded
 
     def get_cv_split(self, n_splits, as_val=False):
+        """
+        Computes the cross-validation splits for the train + validation/test sets.
+        :param n_splits: number of cross-validation splits to divide the dataset into.
+        :param as_val: flag to determine if the split should be evaluated on the validation or test set.
+        :return: list of dictionaries that contains the train set + validation/test set for each split.
+        """
         data = pd.concat([self.train, self.test], ignore_index=True)
         kf = KFold(n_splits=n_splits)
 

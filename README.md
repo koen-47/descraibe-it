@@ -124,16 +124,16 @@ method<span></span></th>
             <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
             <td colspan="2">$C$</td>
             <td rowspan="2">Grid Search</td>
-            <td>{0.1, 1, ..., 1000}</td>
+            <td>{10<sup>-1</sup>, 1, ..., 10<sup>3</sup>}</td>
             <td colspan="2">10</td>
         </tr>
         <tr>
             <td colspan="2">$\gamma$</td>
-            <td>{10e-4, 10e-3, ..., 10}</td>
+            <td>{10<sup>-4</sup>, 10<sup>-3</sup>, ..., 10<sup>1</sup>}</td>
             <td colspan="2">1</td>
         </tr>
         <tr>
-            <td rowspan=10><a href="./results/lstm">LSTM<sup>1</sup></a></td>
+            <td rowspan=10><a href="./results/lstm">LSTM</a><sup>1</sup></td>
             <td rowspan=4><a href="./results/lstm/lstm_results_arch_1.json">Architecture</a></td>
             <td># LSTM units</td>
             <td rowspan="10">Bayesian Optimization</td>
@@ -163,9 +163,9 @@ method<span></span></th>
         </tr>
         <tr>
             <td>Initial LR</td>
-            <td>[0.0001, 0.001]</td>
-            <td>9.99 $\times$ 10e-4</td>
-            <td>10e-3</td>
+            <td>[10<sup>-4</sup>, 10<sup>-3</sup>]</td>
+            <td>9.99 $\times$ 10<sup>-4</sup></td>
+            <td>10<sup>-3</sup></td>
         </tr>
         <tr>
             <td># decay steps</td>
