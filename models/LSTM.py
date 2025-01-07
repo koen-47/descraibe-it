@@ -1,12 +1,21 @@
+import os
+import warnings
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+warnings.simplefilter("default")
+warnings.filterwarnings(
+    "ignore",
+    message=r"^non-integer arguments to randrange\(\).*deprecated since Python 3\.10.*$",
+    category=DeprecationWarning
+)
+
 import io
 import json
 import math
 from abc import ABC
 import random
-import os
 import functools
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import optuna
 import numpy as np
@@ -42,8 +51,6 @@ tf.keras.utils.set_random_seed(42)
 random.seed(42)
 np.random.seed(42)
 
-# tf.get_logger().setLevel("ERROR")
-# tf.autograph.set_verbosity(0)
 
 
 class LSTM(Model):
@@ -64,10 +71,14 @@ class LSTM(Model):
             with io.open(save_tokenizer, 'w+', encoding='utf-8') as f:
                 f.write(json.dumps(tokenizer_json, ensure_ascii=False))
 
-    def fit(self, x_train=None, y_train=None):
+    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None, verbose=False):
         if x_train is None and y_train is None:
             x_train = self.__train["description"]
             y_train = self.__train["label"]
+
+        if x_val is None and y_val is None:
+            x_val = self.__val["description"]
+            y_val = self.__val["label"]
 
         x_train = self.__tokenizer.texts_to_sequences(x_train)
         x_train = np.array(pad_sequences(x_train, maxlen=self.__embedding.dimensionality))
@@ -107,17 +118,19 @@ class LSTM(Model):
             optimizer = SGD(momentum=momentum)
 
         model.compile(optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["acc"])
-        es = EarlyStopping(monitor="val_loss", mode="min", verbose=self.__params["early_stopping"]["verbose"],
+        es = EarlyStopping(monitor="val_loss", mode="min", verbose=self.__params["misc"]["verbose"],
                            patience=self.__params["early_stopping"]["patience"])
 
-        x_val = self.__tokenizer.texts_to_sequences(self.__val["description"])
+        x_val = self.__tokenizer.texts_to_sequences(x_val)
         x_val = np.array(pad_sequences(x_val, maxlen=self.__embedding.dimensionality))
-        y_val = np.array(self.__val["label"])
-        model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"], validation_data=(x_val, y_val),
-                  epochs=self.__params["misc"]["epochs"], verbose=1, callbacks=[es, scheduler])
+        y_val = np.array(y_val)
+        val_history = model.fit(x_train, y_train, batch_size=self.__params["misc"]["batch_size"],
+                                validation_data=(x_val, y_val), epochs=self.__params["misc"]["epochs"],
+                                verbose=self.__params["misc"]["verbose"], callbacks=[es, scheduler])
 
         # model.save(self.__params["misc"]["save_filepath"], save_format="h5")
         self.__model = model
+        return val_history
 
     def predict(self, x):
         x = self.__dataset.clean_text(x)
@@ -128,7 +141,7 @@ class LSTM(Model):
         pred_label = self.__dataset.decode_label(pred_probs.argmax(axis=-1))
         return pred_label, pred_max_prob, pred_probs
 
-    def evaluate(self, x_test=None, y_test=None, use_val=False, return_incorrect=False, verbose=False):
+    def evaluate(self, x_test=None, y_test=None, use_val=False, verbose=False):
         if x_test is None and y_test is None:
             y_test = self.__val["label"] if use_val else self.__test["label"]
             x_test = self.__val["description"] if use_val else self.__test["description"]
@@ -137,7 +150,7 @@ class LSTM(Model):
         x_test_tok = self.__tokenizer.texts_to_sequences(x_test)
         x_test_tok = pad_sequences(x_test_tok, maxlen=self.__embedding.dimensionality)
 
-        y_pred = self.__model.predict(x_test_tok)
+        y_pred = self.__model.predict(x_test_tok, verbose=0)
         y_pred_label = label_encoder.inverse_transform([np.argmax(pred) for pred in y_pred])
         y_test = label_encoder.inverse_transform(y_test)
 
@@ -150,12 +163,6 @@ class LSTM(Model):
             print(f"Results for LSTM model:\n- Accuracy: {accuracy:.2f}%\n- Precision: {precision:.2f}%"
                   f"\n- Recall: {recall:.2f}%\n- F1 score: {f1:.2f}%")
 
-        if return_incorrect:
-            y_pred_prob = [np.max(pred) for pred in y_pred]
-            incorrect = [(desc, pred, prob, actual) for desc, pred, prob, actual in
-                         zip(x_test, y_pred_label, y_pred_prob, y_test) if pred != actual]
-            incorrect_df = pd.DataFrame(incorrect, columns=["description", "predicted", "probability", "actual"])
-            return accuracy, precision, recall, f1, incorrect_df
         return accuracy, precision, recall, f1
 
     def plot_confusion_matrix(self):
@@ -263,6 +270,33 @@ class LSTM(Model):
             json.dump(results, file, indent=3)
 
         return score
+
+    def cross_validate(self, n_splits, verbose=False):
+        cv = self.__dataset.get_cv_split(n_splits=n_splits, as_val=True)
+        best_accuracy, best_model = 0, None
+        results_per_split = []
+        for i, data in enumerate(cv):
+            x_train = data["train"]["description"]
+            y_train = data["train"]["label"]
+            x_test = data["test"]["description"]
+            y_test = data["test"]["label"]
+            model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
+            loss_history = model.fit(x_train, y_train, x_test, y_test, verbose=False)
+            accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
+            results_per_split.append({
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+                "train_loss_history": loss_history.history["loss"],
+                "val_loss_history": loss_history.history["val_loss"]
+            })
+            if verbose:
+                print(f"Accuracy on split {i+1}: {accuracy:.2f}")
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_model = model
+        return best_accuracy, best_model, results_per_split
 
     def tune(self, n_trials, param_space, save=""):
         self.__param_space = param_space

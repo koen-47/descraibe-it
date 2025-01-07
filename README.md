@@ -98,12 +98,13 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
     <thead>
         <tr>
             <th>Model</th>
-            <th>Hyperparameter Type</th>
+            <th>Hyperparameter type</th>
             <th>Hyperparameter</th>
             <th><span>Tuning</span>
-Method<span></span></th>
+method<span></span></th>
             <th>Range</th>
-            <th>Selected Value</th>
+            <th>Auto-selected value</th>
+            <th>Final value</th>
         </tr>
     </thead>
     <tbody>
@@ -113,11 +114,13 @@ Method<span></span></th>
             <td rowspan="2">Grid Search</td>
             <td>{1, 2, ..., 50}</td>
             <td>35</td>
+            <td>-</td>
         </tr>
         <tr>
             <td colspan="2">Weight type</td>
             <td>{distance, uniform}</td>
             <td>distance</td>
+            <td>-</td>
         </tr>
         <tr>
             <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
@@ -125,11 +128,13 @@ Method<span></span></th>
             <td rowspan="2">Grid Search</td>
             <td>{0.1, 1, ..., 1000}</td>
             <td>10</td>
+            <td>-</td>
         </tr>
         <tr>
             <td colspan="2">γ</td>
             <td>{10e-4, 10e-3, ..., 10}</td>
             <td>1</td>
+            <td>-</td>
         </tr>
         <tr>
             <td rowspan=10><a href="./results/lstm">LSTM</a></td>
@@ -138,20 +143,24 @@ Method<span></span></th>
             <td rowspan="10">Bayesian Optimization</td>
             <td>{64, 128, ..., 512}</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># FC layers</td>
             <td>{1, 2}</td>
+            <td>-</td>
             <td>-</td>
         </tr>
         <tr>
             <td># units per FC layer</td>
             <td>{128, 256, ..., 1024}</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
-            <td>Dropout per layer</td>
+            <td>Dropout per FC layer</td>
             <td>{0.1, 0.3, ..., 0.7}</td>
+            <td>-</td>
             <td>-</td>
         </tr>
         <tr>
@@ -159,14 +168,17 @@ Method<span></span></th>
             <td>Scheduler</td>
             <td>-</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>Initial LR</td>
             <td>-</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td># decay steps</td>
+            <td>-</td>
             <td>-</td>
             <td>-</td>
         </tr>
@@ -175,14 +187,17 @@ Method<span></span></th>
             <td>Optimizer</td>
             <td>-</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₁</td>
             <td>-</td>
             <td>-</td>
+            <td>-</td>
         </tr>
         <tr>
             <td>β ₂</td>
+            <td>-</td>
             <td>-</td>
             <td>-</td>
         </tr>

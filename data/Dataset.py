@@ -131,6 +131,16 @@ class Dataset:
         np.save(f"{os.path.dirname(__file__)}/../models/saved/labels.npy", self.label_encoder.classes_)
         return encoded
 
+    def get_cv_split(self, n_splits, as_val=False):
+        data = pd.concat([self.train, self.test], ignore_index=True)
+        kf = KFold(n_splits=n_splits)
+
+        if as_val:
+            data = pd.concat([self.train, self.val], ignore_index=True)
+            return [{"train": data.iloc[split[0]], "test": data.iloc[split[1]]} for split in list(kf.split(data))]
+
+        return [{"train": data.iloc[split[0]], "test": data.iloc[split[1]]} for split in list(kf.split(data))]
+
     def get_full_dataset(self):
         """
         Merges the train, test and (if necessary) validation sets and returns it as a Pandas DataFrame.

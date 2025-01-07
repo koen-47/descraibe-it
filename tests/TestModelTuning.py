@@ -6,6 +6,7 @@ import pandas as pd
 from data.Dataset import Dataset
 from data.GloVeEmbedding import GloVeEmbedding
 from models.LSTM import LSTM
+from models.XGBoost import XGBoost
 from models.kNN import kNN
 from models.SVM import SVM
 
@@ -76,6 +77,36 @@ class TestModelTuning(unittest.TestCase):
         with open("../results/svm/svm_results.json", "w") as file:
             json.dump(svm_results, file, indent=3)
         model.plot_confusion_matrix(show=False, save_filepath="../results/svm/svm_confusion_matrix.png")
+
+    def test_tune_xgboost(self):
+        model = XGBoost(self.dataset, {})
+        param_space = {
+            "n_estimators": [100, 1000],
+            "learning_rate": [0.0001, 0.001, 0.01, 0.1],
+            "max_depth": list(range(3, 15, 2)),
+        }
+
+        best_params = model.tune(n_jobs=None, param_space=param_space, verbose=True)
+        model = XGBoost(self.dataset, best_params)
+        model.fit(use_val=True)
+        accuracy, precision, recall, f1_score = model.evaluate(verbose=True)
+
+        xgboost_results = {
+            "performance": {
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1_score": f1_score
+            },
+            "tuning": {
+                "param_space": param_space,
+                "best_params": best_params
+            }
+        }
+
+        with open("../results/xgboost/xgboost_results.json", "w") as file:
+            json.dump(xgboost_results, file, indent=3)
+        # model.plot_confusion_matrix(show=False, save_filepath="../results/xgboost/xgboost_confusion_matrix.png")
 
     def test_tune_lstm(self):
         # glove = GloVeEmbedding(f"../data/embeddings/glove.6B.100d.txt", dimensionality=100)

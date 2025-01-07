@@ -1,0 +1,35 @@
+{
+   "performance": {
+      "accuracy": 96.24971502393798,
+      "precision": 96.27223252868845,
+      "recall": 96.25616353606198,
+      "f1_score": 96.25939352720134
+   },
+   "tuning": {
+      "param_space": {
+         "n_estimators": [
+            100,
+            1000
+         ],
+         "learning_rate": [
+            0.0001,
+            0.001,
+            0.01,
+            0.1
+         ],
+         "max_depth": [
+            3,
+            5,
+            7,
+            9,
+            11,
+            13
+         ]
+      },
+      "best_params": {
+         "learning_rate": 0.1,
+         "max_depth": 7,
+         "n_estimators": 1000
+      }
+   }
+}

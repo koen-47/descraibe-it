@@ -1,23 +1,17 @@
-import time
-from abc import ABC
-
 import numpy as np
-import optuna
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, PredefinedSplit
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import GridSearchCV, PredefinedSplit
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, ConfusionMatrixDisplay
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC
-from hyperopt import hp, fmin, tpe, STATUS_OK, Trials, anneal
+from xgboost import XGBClassifier
 
 from data.Dataset import Dataset
 from data.PreprocessingPipeline import PreprocessingPipeline
 from models.Model import Model
 
 
-class SVM(Model):
+class XGBoost(Model):
     def __init__(self, dataset, params):
         self.__dataset = dataset
         self.__train = dataset.train
@@ -31,13 +25,22 @@ class SVM(Model):
         self.__params = params
         self.__param_space = {}
 
-    def fit(self, x_train=None, y_train=None):
+    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None, use_val=False):
         if x_train is None and y_train is None:
             x_train = self.__train["description"]
             y_train = self.__train["label"]
 
+        if x_val is None and y_val is None:
+            x_val = self.__val["description"]
+            y_val = self.__val["label"]
+
+        if use_val:
+            x_train = pd.concat([x_train, x_val]).reset_index(drop=True)
+            y_train = pd.concat([y_train, y_val]).reset_index(drop=True)
+
         x_train = self.__vectorizer.transform(x_train)
-        model = SVC(C=self.__params["C"], gamma=self.__params["gamma"])
+        model = XGBClassifier(n_estimators=self.__params["n_estimators"], learning_rate=self.__params["learning_rate"],
+                              max_depth=self.__params["max_depth"], tree_method="hist", device="cuda")
         model.fit(x_train, y_train)
         self.__model = model
 
@@ -55,7 +58,7 @@ class SVM(Model):
         f1 = float(f1_score(y_test, y_pred, average='macro')) * 100
 
         if verbose:
-            print(f"Results for SVM model:\n- Accuracy: {accuracy:.2f}%\n- Precision: {precision:.2f}%"
+            print(f"Results for XGBoost model:\n- Accuracy: {accuracy:.2f}%\n- Precision: {precision:.2f}%"
                   f"\n- Recall: {recall:.2f}%\n- F1 score: {f1:.2f}%")
 
         return accuracy, precision, recall, f1
@@ -76,7 +79,7 @@ class SVM(Model):
             y_train = data["train"]["label"]
             x_test = data["test"]["description"]
             y_test = data["test"]["label"]
-            model = SVM(self.__dataset, params=self.__params)
+            model = XGBoost(self.__dataset, params=self.__params)
             model.fit(x_train, y_train)
             accuracy = model.evaluate(x_test, y_test)[0]
             if verbose:
@@ -111,13 +114,16 @@ class SVM(Model):
         test_fold = pd.concat([train_data, val_data])
         pds = PredefinedSplit(test_fold=test_fold["i"].tolist())
 
-        x_train = self.__train["description"]
+        x_train = pd.concat([self.__train["description"], self.__val["description"]])
         x_train = self.__vectorizer.transform(x_train)
-        y_train = np.array(self.__train["label"])
+        y_train = pd.concat([self.__train["label"], self.__val["label"]])
 
-        grid = GridSearchCV(SVC(), param_space, refit=True, n_jobs=n_jobs, cv=pds, verbose=10 if verbose else 0)
+        model = XGBClassifier(device="cuda", tree_method="hist", eval_metric="logloss")
+        grid = GridSearchCV(model, param_space, refit=True, n_jobs=n_jobs, cv=pds, verbose=10 if verbose else 0)
         grid.fit(x_train, y_train)
         return grid.best_params_
 
     def tune(self, param_space, n_jobs=1, verbose=False):
-        return self.__gridsearch(param_space, n_jobs, verbose=verbose)
+        tuned_params = self.__gridsearch(param_space, n_jobs, verbose=verbose)
+        self.__model = XGBoost(self.__dataset, tuned_params)
+        return tuned_params
