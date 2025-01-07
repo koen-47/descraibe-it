@@ -124,14 +124,14 @@ method<span></span></th>
         </tr>
         <tr>
             <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
-            <td colspan="2">C</td>
+            <td colspan="2">$C$</td>
             <td rowspan="2">Grid Search</td>
             <td>{0.1, 1, ..., 1000}</td>
             <td>10</td>
             <td>-</td>
         </tr>
         <tr>
-            <td colspan="2">γ</td>
+            <td colspan="2">$\gamma$</td>
             <td>{10e-4, 10e-3, ..., 10}</td>
             <td>1</td>
             <td>-</td>
@@ -183,18 +183,18 @@ method<span></span></th>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
-            <td>[0.0001, 0.001</td>
-            <td>$9.99 \times 10^−4$</td>
-            <td>10-3</td>
+            <td>[0.0001, 0.001]</td>
+            <td>9.99 $\times 10^{−4}$</td>
+            <td>$10^{-3}$</td>
         </tr>
         <tr>
-            <td>β ₁</td>
+            <td>$\beta_1$</td>
             <td>-</td>
             <td>-</td>
             <td>-</td>
         </tr>
         <tr>
-            <td>β ₂</td>
+            <td>$\beta_2$</td>
             <td>-</td>
             <td>-</td>
             <td>-</td>
