@@ -166,9 +166,7 @@ method<span></span></th>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">LR Schedule</a></td>
             <td>Scheduler</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td colspan="3">Cosine Decay</td>
         </tr>
         <tr>
             <td>Initial LR</td>
@@ -185,9 +183,9 @@ method<span></span></th>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>[0.0001, 0.001</td>
+            <td>$9.99 \times 10^−4$</td>
+            <td>10-3</td>
         </tr>
         <tr>
             <td>β ₁</td>
