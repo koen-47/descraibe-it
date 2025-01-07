@@ -43,7 +43,7 @@ class TestModelEvaluation(unittest.TestCase):
             "fc_layers": [{"units": 384, "dropout_p": 0.7}],
             "early_stopping": {"patience": 20},
             "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 25},
-            "optimizer": {"name": "adam", "beta_1": 0.9, "beta_2": 0.955},
+            "optimizer": {"name": "adam", "beta_1": 0.906, "beta_2": 0.955},
             "misc": {"epochs": 500, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5", "verbose": 1}
         }
 

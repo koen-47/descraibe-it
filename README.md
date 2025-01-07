@@ -98,7 +98,7 @@ is used for smaller search spaces and Bayesian Optimization is used for larger o
     <thead>
         <tr>
             <th>Model</th>
-            <th>Hyperparameter type</th>
+            <th>Type</th>
             <th>Hyperparameter</th>
             <th><span>Tuning</span>
 method<span></span></th>
@@ -113,55 +113,48 @@ method<span></span></th>
             <td colspan="2"># neighbours</td>
             <td rowspan="2">Grid Search</td>
             <td>{1, 2, ..., 50}</td>
-            <td>35</td>
-            <td>-</td>
+            <td colspan="2">35</td>
         </tr>
         <tr>
             <td colspan="2">Weight type</td>
             <td>{distance, uniform}</td>
-            <td>distance</td>
-            <td>-</td>
+            <td colspan="2">distance</td>
         </tr>
         <tr>
             <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
             <td colspan="2">$C$</td>
             <td rowspan="2">Grid Search</td>
             <td>{0.1, 1, ..., 1000}</td>
-            <td>10</td>
-            <td>-</td>
+            <td colspan="2">10</td>
         </tr>
         <tr>
             <td colspan="2">$\gamma$</td>
             <td>{10e-4, 10e-3, ..., 10}</td>
-            <td>1</td>
-            <td>-</td>
+            <td colspan="2">1</td>
         </tr>
         <tr>
-            <td rowspan=10><a href="./results/lstm">LSTM</a></td>
+            <td rowspan=10><a href="./results/lstm">LSTM<sup>1</sup></a></td>
             <td rowspan=4><a href="./results/lstm/lstm_results_arch_1.json">Architecture</a></td>
             <td># LSTM units</td>
             <td rowspan="10">Bayesian Optimization</td>
             <td>{64, 128, ..., 512}</td>
-            <td>-</td>
-            <td>-</td>
+            <td colspan="2">448</td>
         </tr>
         <tr>
             <td># FC layers</td>
             <td>{1, 2}</td>
-            <td>-</td>
-            <td>-</td>
+            <td colspan="2">1</td>
         </tr>
         <tr>
             <td># units per FC layer</td>
             <td>{128, 256, ..., 1024}</td>
-            <td>-</td>
-            <td>-</td>
+            <td colspan="2">384</td>
         </tr>
         <tr>
             <td>Dropout per FC layer</td>
             <td>{0.1, 0.3, ..., 0.7}</td>
-            <td>-</td>
-            <td>-</td>
+            <td>0.3</td>
+            <td>0.7</td>
         </tr>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">LR Schedule</a></td>
@@ -170,36 +163,35 @@ method<span></span></th>
         </tr>
         <tr>
             <td>Initial LR</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>[0.0001, 0.001]</td>
+            <td>9.99 $\times$ 10e-4</td>
+            <td>10e-3</td>
         </tr>
         <tr>
             <td># decay steps</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>{25, 50, ..., 250}</td>
+            <td>250</td>
+            <td>25</td>
         </tr>
         <tr>
             <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
-            <td>[0.0001, 0.001]</td>
-            <td>9.99 $\times$ 10 $^{−4}$</td>
-            <td>10 $^{-3}$</td>
+            <td>{Adam, SGD}</td>
+            <td colspan="2">Adam</td>
         </tr>
         <tr>
             <td>$\beta_1$</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>[0, 0.9999]</td>
+            <td colspan="2">0.906</td>
         </tr>
         <tr>
             <td>$\beta_2$</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td>[0.9, 0.9999]</td>
+            <td colspan="2">0.955</td>
         </tr>
     </tbody>
 </table>
+
+<sup>1</sup> The loss function used for all LSTM experiments is sparse cross-entropy as the labels are not one-hot encoded.
 
 ### Results
