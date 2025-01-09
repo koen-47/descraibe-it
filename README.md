@@ -196,45 +196,47 @@ method<span></span></th>
 
 ### Results
 
-<table>
-    <thead>
-        <th>Model</th>
-        <th>Accuracy</th>
-        <th>Precision</th>
-        <th>Recall</th>
-        <th>F1-score</th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>kNN</td>
-            <td>94.37</td>
-            <td>94.42</td>
-            <td>94.38</td>
-            <td>94.38</td>
-        </tr>
-        <tr>
-            <td>XGBoost</td>
-            <td>95.84</td>
-            <td>95.86</td>
-            <td>95.85</td>
-            <td>95.85</td>
-        </tr>
-        <tr>
-            <td>SVM</td>
-            <td>97.51</td>
-            <td>97.53</td>
-            <td>97.51</td>
-            <td>97.52</td>
-        </tr>
-        <tr>
-            <td>LSTM</td>
-            <td>97.75</td>
-            <td>97.75</td>
-            <td>97.75</td>
-            <td>97.75</td>
-        </tr>
-    </tbody>
-</table>
+<div align="center">
+    <table>
+        <thead>
+            <th>Model</th>
+            <th>Accuracy</th>
+            <th>Precision</th>
+            <th>Recall</th>
+            <th>F1-score</th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>kNN</td>
+                <td>94.37</td>
+                <td>94.42</td>
+                <td>94.38</td>
+                <td>94.38</td>
+            </tr>
+            <tr>
+                <td>XGBoost</td>
+                <td>95.84</td>
+                <td>95.86</td>
+                <td>95.85</td>
+                <td>95.85</td>
+            </tr>
+            <tr>
+                <td>SVM</td>
+                <td>97.51</td>
+                <td>97.53</td>
+                <td>97.51</td>
+                <td>97.52</td>
+            </tr>
+            <tr>
+                <td>LSTM</td>
+                <td>97.75</td>
+                <td>97.75</td>
+                <td>97.75</td>
+                <td>97.75</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./results/lstm/lstm_loss_acc_plot_dark.png">
