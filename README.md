@@ -9,6 +9,8 @@
 Inspired by [Quick, Draw!](https://quickdraw.withgoogle.com/), *DescrAIbe It* is a text-based alternative where players must describe words for a trained NLP model to guess.
 This is done by collecting a dataset of over 180,000 descriptions spread over 25 words.
 
+[**🤗 Dataset**](https://huggingface.co/datasets/koen-47/descraibe-it) | [**🎮 Demo**](https://descraibe-it.onrender.com/)
+
 </div>
 
 
@@ -18,13 +20,13 @@ This is done by collecting a dataset of over 180,000 descriptions spread over 25
 Create a conda environment with a name of your choice with Python version 3.10:
 
 
-```python
+```shell
 conda create -n <env_name> python=3.10
 ```
 
 Activate it and install all necessary libraries:
 
-```python
+```shell
 pip install -r requirements.txt
 ```
 
@@ -33,7 +35,7 @@ pip install -r requirements.txt
 
 Run the following commands to run a specified model on the data (for the setup used here, see ...).
 
-```python
+```shell
 python main.py --model [model] [verbosity]
 ```
 
@@ -115,7 +117,7 @@ The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random 
 
 
 ### Model Development
-We experiment with three different models: a [kNN](./models/kNN.py), [SVM](./models/SVM.py) and [LSTM](./models/LSTM.py).
+We experiment with four different models: a [kNN](./models/kNN.py), [XGBoost](./models/XGBoost.py), [SVM](./models/SVM.py) and [LSTM](./models/LSTM.py).
 
 #### Hyperparameter Tuning
 
@@ -141,7 +143,7 @@ method<span></span></th>
     </thead>
     <tbody>
         <tr>
-            <td rowspan=2><a href="./results/knn/knn_results.json">kNN</a></td>
+            <td rowspan=2><a href="./results/knn/knn_tuning.json">kNN</a></td>
             <td colspan="2"># neighbours</td>
             <td rowspan="2">Grid Search</td>
             <td>{1, 2, ..., 50}</td>
@@ -153,7 +155,24 @@ method<span></span></th>
             <td colspan="2">distance</td>
         </tr>
         <tr>
-            <td rowspan=2><a href="./results/svm/svm_results.json">SVM</a></td>
+            <td rowspan=3><a href="./results/xgboost/xgboost_tuning.json">XGBoost</a></td>
+            <td colspan="2"># estimators</td>
+            <td rowspan="3">Grid Search</td>
+            <td>{100, 1000}</td>
+            <td colspan="2">1000</td>
+        </tr>
+        <tr>
+            <td colspan="2">Learning rate</td>
+            <td>{10<sup>-4</sup>, 10<sup>-3</sup>, ..., 10<sup>-1</sup>}</td>
+            <td colspan="2">10<sup>-1</sup></td>
+        </tr>
+        <tr>
+            <td colspan="2">Max depth</td>
+            <td>{3, 5, ..., 13}</td>
+            <td colspan="2">7</td>
+        </tr>
+        <tr>
+            <td rowspan=2><a href="./results/svm/svm_tuning.json">SVM</a></td>
             <td colspan="2">$C$</td>
             <td rowspan="2">Grid Search</td>
             <td>{10<sup>-1</sup>, 1, ..., 10<sup>3</sup>}</td>
@@ -166,7 +185,7 @@ method<span></span></th>
         </tr>
         <tr>
             <td rowspan=10><a href="./results/lstm">LSTM</a><sup>1</sup></td>
-            <td rowspan=4><a href="./results/lstm/lstm_results_arch_1.json">Architecture</a></td>
+            <td rowspan=4><a href="./results/lstm/lstm_tuning_arch_1.json">Architecture</a></td>
             <td># LSTM units</td>
             <td rowspan="10">Bayesian Optimization</td>
             <td>{64, 128, ..., 512}</td>
@@ -189,7 +208,7 @@ method<span></span></th>
             <td>0.7</td>
         </tr>
         <tr>
-            <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">LR Schedule</a></td>
+            <td rowspan=3><a href="./results/lstm/lstm_tuning_adam_1.json">LR Schedule</a></td>
             <td>Scheduler</td>
             <td colspan="3">Cosine Decay</td>
         </tr>
@@ -206,7 +225,7 @@ method<span></span></th>
             <td>25</td>
         </tr>
         <tr>
-            <td rowspan=3><a href="./results/lstm/lstm_results_adam_1.json">Optimizer</a></td>
+            <td rowspan=3><a href="./results/lstm/lstm_tuning_adam_1.json">Optimizer</a></td>
             <td>Optimizer</td>
             <td>{Adam, SGD}</td>
             <td colspan="2">Adam</td>
@@ -226,7 +245,18 @@ method<span></span></th>
 
 <sup>1</sup> The loss function used for all LSTM experiments is sparse cross-entropy as the labels are not one-hot encoded.
 
-### Results
+### Evaluation
+
+#### Procedure
+
+The procedure during model evaluation is as follows. We concatenate the training and validation data and perform
+cross validation (5 splits) on this set. The best performing model (by accuracy) is selected which is then evaluated
+on the test. We mainly focus on accuracy as the dataset has a class balance, but the precision, recall and F1-score
+are also reported for completeness.
+
+#### Results
+
+The table below shows the results for all four models. The LSTM model performs best, followed by SVM, XGBoost and kNN.
 
 <div align="center">
     <table>
@@ -239,28 +269,28 @@ method<span></span></th>
         </thead>
         <tbody>
             <tr>
-                <td>kNN</td>
+                <td><a href="./results/knn/knn_evaluation.json">kNN</a></td>
                 <td>94.37</td>
                 <td>94.42</td>
                 <td>94.38</td>
                 <td>94.38</td>
             </tr>
             <tr>
-                <td>XGBoost</td>
+                <td><a href="./results/xgboost/xgboost_evaluation.json">XGBoost</a></td>
                 <td>95.84</td>
                 <td>95.86</td>
                 <td>95.85</td>
                 <td>95.85</td>
             </tr>
             <tr>
-                <td>SVM</td>
+                <td><a href="./results/svm/svm_evaluation.json">SVM</a></td>
                 <td>97.51</td>
                 <td>97.53</td>
                 <td>97.51</td>
                 <td>97.52</td>
             </tr>
             <tr>
-                <td>LSTM</td>
+                <td><a href="./results/lstm/lstm_evaluation.json">LSTM</a></td>
                 <td><b>97.75</b></td>
                 <td><b>97.75</b></td>
                 <td><b>97.75</b></td>
