@@ -229,10 +229,10 @@ method<span></span></th>
             </tr>
             <tr>
                 <td>LSTM</td>
-                <td>97.75</td>
-                <td>97.75</td>
-                <td>97.75</td>
-                <td>97.75</td>
+                <td><b>97.75</b></td>
+                <td><b>97.75</b></td>
+                <td><b>97.75</b></td>
+                <td><b>97.75</b></td>
             </tr>
         </tbody>
     </table>
