@@ -5,9 +5,37 @@
 </picture>
 </div>
 
+Inspired by [Quick, Draw!](https://quickdraw.withgoogle.com/), *DescrAIbe It* is a text-based alternative where players must describe words for a trained NLP model to guess.
+This is done by collecting a dataset of over 180,000 descriptions spread over 25 words.
+
+
 ## Installation
 
+Create a conda environment with a name of your choice with Python version 3.10:
+
+
+```python
+conda create -n <env_name> python=3.10
+```
+
+Activate it and install all necessary libraries:
+
+```python
+pip install -r requirements.txt
+```
+
+
 ### Reproducing the Results
+
+Run the following commands to run a specified model on the data (for the setup used here, see ...).
+
+```python
+python main.py --model [model] [verbosity]
+```
+
+The model arguments are: `knn`, `xgboost`, `svm` or `lstm`. To turn on the verbosity, add `--verbose` to the end of the command.
+
+In order to run the LSTM model, you need to download the [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors) and add them to the folder `data/embeddings`.
 
 
 ## Methodology

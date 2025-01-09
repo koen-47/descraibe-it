@@ -37,8 +37,8 @@ class TestModelEvaluation(unittest.TestCase):
         pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
         self.dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
 
-        glove = GloVeEmbedding(f"../data/embeddings/glove.840B.300d.txt", dimensionality=300)
-        # glove = GloVeEmbedding(f"../data/embeddings/glove.6B.100d.txt", dimensionality=100)
+        # glove = GloVeEmbedding(f"../data/embeddings/glove.840B.300d.txt", dimensionality=300)
+        glove = GloVeEmbedding(f"../data/embeddings/glove.6B.100d.txt", dimensionality=100)
 
         params = {
             "lstm_layers": [{"bidirectional": True, "units": 448}],

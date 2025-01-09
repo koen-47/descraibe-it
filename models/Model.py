@@ -11,9 +11,5 @@ class Model(ABC):
         pass
 
     @abstractmethod
-    def plot_confusion_matrix(self):
-        pass
-
-    @abstractmethod
     def predict(self, x):
         pass

@@ -52,8 +52,8 @@ class Dataset:
             raise ValueError("Unable to define dataset .csv filepath while data is defined.")
 
         # Set up preprocessing pipeline
-        preprocess = preprocess if preprocess is not None else ["make_lowercase", "expand_contractions",
-                                                                "remove_stopwords", "lemmatize", "clean_text"]
+        self.preprocess = preprocess if preprocess is not None else ["make_lowercase", "expand_contractions",
+                                                                     "remove_stopwords", "lemmatize", "clean_text"]
 
         # Read and preprocess all the data (if the data is not set already during instantiation)
         if train_data is None and val_data is None and test_data is None:

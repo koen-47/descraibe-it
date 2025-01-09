@@ -1,23 +1,23 @@
-import os
 import argparse
-import json
 
 import pandas as pd
 
 from data.GloVeEmbedding import GloVeEmbedding
-from data.PromptManager import PromptManager
 from data.Dataset import Dataset
 from models.LSTM import LSTM
 from models.kNN import kNN
+from models.XGBoost import XGBoost
 from models.SVM import SVM
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", type=str)
+    parser.add_argument("--verbose", action="store_true")
 
     args = parser.parse_args()
     model_type = args.model
+    verbose = args.verbose
 
     train_data = pd.read_csv("./data/splits/train.csv")
     test_data = pd.read_csv("./data/splits/test.csv")
@@ -25,61 +25,62 @@ def main():
     pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
     dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
 
-    if model_type == "lstm":
+    if model_type == "knn":
+        best_params = {
+            "n_neighbors": 35,
+            "p": 2,
+            "weights": "distance"
+        }
+
+        model = kNN(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "xgboost":
+        best_params = {
+            "learning_rate": 0.1,
+            "max_depth": 7,
+            "n_estimators": 1000
+        }
+
+        model = XGBoost(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "svm":
+        best_params = {
+            "C": 10.0,
+            "gamma": 1.0
+        }
+
+        model = SVM(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "lstm":
         best_params = {
             "lstm_layers": [{"bidirectional": True, "units": 448}],
             "fc_layers": [{"units": 384, "dropout_p": 0.7}],
-            "early_stopping": {"patience": 5},
-            "scheduler": {"initial_learning_rate": 0.0001, "decay_steps": 25},
-            "optimizer": {"name": "adam", "beta_1": 0.907, "beta_2": 0.955},
-            "misc": {"epochs": 500, "batch_size": 256, "save_filepath": "./models/saved/lstm.h5", "verbose": 1}
+            "early_stopping": {"patience": 20},
+            "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 25},
+            "optimizer": {"name": "adam", "beta_1": 0.906, "beta_2": 0.955},
+            "misc": {"epochs": 500, "batch_size": 256, "verbose": int(verbose)}
         }
 
+        print()
         glove = GloVeEmbedding(f"./data/embeddings/glove.840B.300d.txt", dimensionality=300)
-        # glove = GloVeEmbedding(f"./data/embeddings/glove.6B.100d.txt", dimensionality=100)
-
         model = LSTM(dataset, embedding=glove, params=best_params)
-        best_accuracy, best_model = model.cross_validate(5, verbose=True)
-        print(f"Best accuracy: {best_accuracy}")
-        best_model.evaluate(verbose=True)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
 
-    elif model_type == "knn":
-        with open("./results/knn/knn_results.json") as file:
-            knn_results = json.load(file)
-        best_params = knn_results["tuning"]["best_params"]
-        model = kNN(dataset, best_params)
-        model.fit(use_val=True)
-        model.evaluate(verbose=True)
-    elif model_type == "svm":
-        with open("./results/svm/svm_results.json") as file:
-            svm_results = json.load(file)
-        best_params = svm_results["tuning"]["best_params"]
-        model = SVM(dataset, best_params)
-        best_accuracy, best_model = model.cross_validate(5, verbose=True)
-        print(f"Best accuracy: {best_accuracy}")
-        best_model.evaluate(verbose=True)
-
-# dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, val_split=0.2, shuffle=True)
-# glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt", dimensionality=100)
-# glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
-# glove = GloVeEmbedding(file_path=None, dimensionality=100)
-# model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
-#
-# # model.start_tuning()
-# model.train()
-
-# model = kNN(dataset)
-
-# dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, shuffle=True)
-
-
-# incorrect_df = model.evaluate(load_model_path="./models/saved/lstm-small.h5", num_incorrect_examples="full")
-# print(len(incorrect_df))
-#
-# incorrect_df = incorrect_df.loc[incorrect_df["probability"] > 0.8]
-# for i, row in incorrect_df.iterrows():
-#     print(row)
-# print(len(incorrect_df))
 
 if __name__ == "__main__":
     main()
