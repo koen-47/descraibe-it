@@ -93,7 +93,7 @@ class TestModelEvaluation(unittest.TestCase):
         color = "#0d1117" if not dark_mode else "#F0F6FC"
         not_color = "#0d1117" if dark_mode else "#F0F6FC"
 
-        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 5))
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10, 3))
 
         axes[0].plot(x, train_loss_mu, label="Training loss", color="#459abd")
         axes[0].fill_between(x, train_loss_mu + train_loss_sigma, train_loss_mu - train_loss_sigma, facecolor="#459abd", alpha=0.5)

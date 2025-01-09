@@ -208,26 +208,30 @@ method<span></span></th>
         <tr>
             <td>kNN</td>
             <td>94.37</td>
-            <td></td>
-            <td></td>
+            <td>94.42</td>
+            <td>94.38</td>
+            <td>94.38</td>
         </tr>
         <tr>
             <td>XGBoost</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>95.84</td>
+            <td>95.86</td>
+            <td>95.85</td>
+            <td>95.85</td>
         </tr>
         <tr>
             <td>SVM</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>97.51</td>
+            <td>97.53</td>
+            <td>97.51</td>
+            <td>97.52</td>
         </tr>
         <tr>
             <td>LSTM</td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>97.75</td>
+            <td>97.75</td>
+            <td>97.75</td>
+            <td>97.75</td>
         </tr>
     </tbody>
 </table>
