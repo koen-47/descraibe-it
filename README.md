@@ -9,7 +9,6 @@
 Inspired by [Quick, Draw!](https://quickdraw.withgoogle.com/), *DescrAIbe It* is a text-based alternative where players must describe words for a trained NLP model to guess.
 This is done by collecting a dataset of over 180,000 descriptions spread over 25 words.
 
-
 </div>
 
 
