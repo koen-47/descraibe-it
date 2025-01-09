@@ -89,7 +89,7 @@ class TestModelTuning(unittest.TestCase):
         best_params = model.tune(n_jobs=None, param_space=param_space, verbose=True)
         model = XGBoost(self.dataset, best_params)
         model.fit(use_val=True)
-        accuracy, precision, recall, f1_score = model.evaluate(verbose=True)
+        accuracy, precision, recall, f1_score = model.evaluate(use_val=True, verbose=True)
 
         xgboost_results = {
             "performance": {

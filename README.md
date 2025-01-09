@@ -195,3 +195,44 @@ method<span></span></th>
 <sup>1</sup> The loss function used for all LSTM experiments is sparse cross-entropy as the labels are not one-hot encoded.
 
 ### Results
+
+<table>
+    <thead>
+        <th>Model</th>
+        <th>Accuracy</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1-score</th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>kNN</td>
+            <td>94.37</td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>XGBoost</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>SVM</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>LSTM</td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="./results/lstm/lstm_loss_acc_plot_dark.png">
+    <img alt="" src="./results/lstm/lstm_loss_acc_plot_light.png" />
+</picture>

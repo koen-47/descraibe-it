@@ -25,13 +25,16 @@ class kNN(Model):
         self.__param_space = {}
         self.__params = params
 
-    def fit(self, use_val=False):
-        x_train = self.__train["description"]
-        y_train = self.__train["label"]
+    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None, use_val=False):
+        if x_train is None and y_train is None:
+            x_train = self.__train["description"]
+            y_train = self.__train["label"]
 
-        if use_val:
+        if x_val is None and y_val is None:
             x_val = self.__val["description"]
             y_val = self.__val["label"]
+
+        if use_val:
             x_train = pd.concat([x_train, x_val]).reset_index(drop=True)
             y_train = pd.concat([y_train, y_val]).reset_index(drop=True)
 
@@ -41,11 +44,12 @@ class kNN(Model):
         model.fit(x_train, y_train)
         self.__model = model
 
-    def evaluate(self, use_val=False, verbose=False):
-        x_test = self.__val["description"] if use_val else self.__test["description"]
-        x_test = self.__vectorizer.transform(x_test)
+    def evaluate(self, x_test=None, y_test=None, use_val=False, verbose=False):
+        if x_test is None and y_test is None:
+            y_test = self.__val["label"] if use_val else self.__test["label"]
+            x_test = self.__val["description"] if use_val else self.__test["description"]
 
-        y_test = self.__val["label"] if use_val else self.__test["label"]
+        x_test = self.__vectorizer.transform(x_test)
         y_pred = self.__model.predict(x_test)
 
         accuracy = float(accuracy_score(y_test, y_pred)) * 100
@@ -66,6 +70,31 @@ class kNN(Model):
         x = self.__vectorizer.transform(x)
         y_pred = self.__model.predict(x)
         return self.__dataset.decode_label(y_pred)
+
+    def cross_validate(self, n_splits, verbose=False):
+        cv = self.__dataset.get_cv_split(n_splits=n_splits, as_val=True)
+        best_accuracy, best_model = 0, None
+        results_per_split = []
+        for i, data in enumerate(cv):
+            x_train = data["train"]["description"]
+            y_train = data["train"]["label"]
+            x_test = data["test"]["description"]
+            y_test = data["test"]["label"]
+            model = kNN(self.__dataset, params=self.__params)
+            model.fit(x_train, y_train)
+            accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
+            results_per_split.append({
+                "accuracy": accuracy,
+                "precision": precision,
+                "recall": recall,
+                "f1": f1,
+            })
+            if verbose:
+                print(f"Accuracy on split {i+1}: {accuracy:.2f}")
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_model = model
+        return best_accuracy, best_model, results_per_split
 
     def plot_confusion_matrix(self, use_val=False, show=True, save_filepath=None, dark_mode=True):
         y_true = self.__val["label"] if use_val else self.__test["label"]

@@ -195,14 +195,17 @@ class LSTM(Model):
             y_test = data["test"]["label"]
             model = LSTM(self.__dataset, embedding=self.__embedding, params=self.__params)
             loss_history = model.fit(x_train, y_train, x_test, y_test)
+            loss_history = loss_history.history
             accuracy, precision, recall, f1 = model.evaluate(x_test, y_test)
             results_per_split.append({
                 "accuracy": accuracy,
                 "precision": precision,
                 "recall": recall,
                 "f1": f1,
-                "train_loss_history": loss_history.history["loss"],
-                "val_loss_history": loss_history.history["val_loss"]
+                "train_loss_history": loss_history["loss"],
+                "val_loss_history": loss_history["val_loss"],
+                "train_acc_history": loss_history["acc"],
+                "val_acc_history": loss_history["val_acc"]
             })
             if verbose:
                 print(f"Accuracy on split {i + 1}: {accuracy:.2f}")

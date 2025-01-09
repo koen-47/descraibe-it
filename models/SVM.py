@@ -31,10 +31,18 @@ class SVM(Model):
         self.__params = params
         self.__param_space = {}
 
-    def fit(self, x_train=None, y_train=None):
+    def fit(self, x_train=None, y_train=None, x_val=None, y_val=None, use_val=False):
         if x_train is None and y_train is None:
             x_train = self.__train["description"]
             y_train = self.__train["label"]
+
+        if x_val is None and y_val is None:
+            x_val = self.__val["description"]
+            y_val = self.__val["label"]
+
+        if use_val:
+            x_train = pd.concat([x_train, x_val]).reset_index(drop=True)
+            y_train = pd.concat([y_train, y_val]).reset_index(drop=True)
 
         x_train = self.__vectorizer.transform(x_train)
         model = SVC(C=self.__params["C"], gamma=self.__params["gamma"])
