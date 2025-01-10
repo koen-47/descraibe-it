@@ -115,7 +115,7 @@ class TestDataset(unittest.TestCase):
 
         self.visualize_class_balance(self.dataset.train, self.dataset.test, self.dataset.val)
 
-    def visualize_class_balance(self, train, test, val=None, dark_mode=True):
+    def visualize_class_balance(self, train, test, val=None, dark_mode=False):
         train_count = train["label"].value_counts().sort_index()
         train_count = pd.DataFrame({"Word": train_count.index, "Frequency": train_count.values})
         test_count = test["label"].value_counts().sort_index()

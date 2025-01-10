@@ -112,7 +112,10 @@ was ultimately discarded after experiments showed it reduced performance.
 The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random split since there is a class balance, as shown below:
 
 <p align="center">
-  <img src="./data/resources/class_balance_chart_dark.png" />
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="./data/resources/class_balance_chart_dark.png">
+        <img alt="" src="./data/resources/class_balance_chart_light.png" />
+    </picture>
 </p>
 
 
