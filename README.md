@@ -256,7 +256,7 @@ are also reported for completeness.
 
 #### Results
 
-The table below shows the results for all four models. The LSTM model performs best, followed by SVM, XGBoost and kNN.
+The table below shows the results for all four models, with the best results highlighted in **bold**. The LSTM model performs best, followed by SVM, XGBoost and kNN.
 
 <div align="center">
     <table>
@@ -299,6 +299,12 @@ The table below shows the results for all four models. The LSTM model performs b
         </tbody>
     </table>
 </div>
+
+The two graphs below show the loss and accuracy curves of the LSTM model. According to the loss, the model 
+is overfitting, but the accuracy still keeps improving. Despite this, we still opt to use the LSTM
+model in the [demo](https://descraibe-it.onrender.com/). This is because (1) the cost of missclassification 
+in the context of the game is very high (resulting in game over), and (2) there is no need to generalize to 
+new data since the game consists of a fixed number of words.
 
 <picture>
     <source media="(prefers-color-scheme: dark)" srcset="./results/lstm/lstm_loss_acc_plot_dark.png">
