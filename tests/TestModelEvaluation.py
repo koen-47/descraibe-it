@@ -89,7 +89,7 @@ class TestModelEvaluation(unittest.TestCase):
         val_acc_mu = val_accuracies.mean(axis=0)
         val_acc_sigma = val_accuracies.std(axis=0)
 
-        dark_mode = True
+        dark_mode = False
         color = "#0d1117" if not dark_mode else "#F0F6FC"
         not_color = "#0d1117" if dark_mode else "#F0F6FC"
 
