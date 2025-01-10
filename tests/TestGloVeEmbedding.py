@@ -160,17 +160,16 @@ class TestGloVeEmbedding840B300d(unittest.TestCase):
         words = load_categories("../data/saved/categories_289.txt")
         embedding_word_vectors = {word: self.embeddings.embedding_index[word] for word in words}
         subset = find_maximal_subset(embedding_word_vectors, k=25)
-        min_distance = self.embeddings.calculate_min_distance_between_words(subset)
+        min_distance = self.calculate_min_distance_between_words(subset)
         print(subset)
         print(min_distance)
         chunks = np.array_split(subset, len(subset) // 25)
         for chunk in chunks:
             print(chunk)
 
-        self.embeddings.visualize_words(words, special_words=subset)
+        self.visualize_words(words, special_words=subset)
 
-
-    def visualize_words(self, words, special_words=None, dark_mode=True):
+    def visualize_words(self, words, special_words=None, dark_mode=False):
         tsne = TSNE(n_components=2, random_state=0, perplexity=len(words) - 1)
         embedding_vectors = np.array([self.embeddings.embedding_index[word] for word in words])
         embedding_vectors_2d = tsne.fit_transform(embedding_vectors)

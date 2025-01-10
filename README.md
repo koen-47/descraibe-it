@@ -77,7 +77,12 @@ As such, we use a greedy algorithm that approximates the optimal subset. The emb
 
 The [final set of selected words](./data/saved/categories_25.txt) are visualized below using t-SNE (2 components, perplexity is 24). 
 
-![word_selection_plot](./data/resources/word_selection_plot_dark.png)
+<p align="center">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="./data/resources/word_selection_plot_dark.png">
+        <img alt="" src="./data/resources/word_selection_plot_light.png" />
+    </picture>
+</p>
 
 
 #### Data Collection
