@@ -21,7 +21,7 @@ class TestOutlierDetection(unittest.TestCase):
     def test_model_outlier_detection(self):
         glove = GloVeEmbedding(f"{self.embedding_filepath}/glove.6B.100d.txt", dimensionality=100)
         dataset = Dataset(csv_path=f"{self.data_filepath}/descriptions_25.csv", test_split=0., val_split=0.2,
-                          shuffle=True, pipeline=["make_lowercase", "clean_text"], drop_duplicates=True)
+                          shuffle=True, preprocess=["make_lowercase", "clean_text"], drop_duplicates=True)
         params = {
             "lstm_layers": [{"bidirectional": True, "units": 480}],
             "fc_layers": [{"units": 656, "dropout_p": 0.7}],
@@ -41,7 +41,7 @@ class TestOutlierDetection(unittest.TestCase):
         print("module %s loaded" % module_url)
 
         dataset = Dataset(csv_path=f"{os.path.dirname(__file__)}/../data/saved/descriptions_25.csv", test_split=0.4,
-                          val_split=0.2, shuffle=True, pipeline=["make_lowercase", "clean_text"], drop_duplicates=True)
+                          val_split=0.2, shuffle=True, preprocess=["make_lowercase", "clean_text"], drop_duplicates=True)
         anvil_df = dataset.__data.loc[dataset.__data["label"] == 1]
         with tf.device('/CPU:0'):
             embeddings = model(anvil_df["description"].tolist())

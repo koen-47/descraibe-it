@@ -1,59 +1,86 @@
-import os
+import argparse
 
-from sklearn.model_selection import KFold
-from tabulate import tabulate
 import pandas as pd
 
 from data.GloVeEmbedding import GloVeEmbedding
-from data.PromptManager import PromptManager
 from data.Dataset import Dataset
 from models.LSTM import LSTM
-from models.SVM import SVM
 from models.kNN import kNN
-from models.RandomForest import IF
-from models.LOF import LOF
-
-args = {
-    "prompt_template": 'Give me <var1> <var2>unique descriptions of <var3>. Do not include the word '
-                       '"<var4>" or any of its variations in your response. Use <var5> language in your response.'
-                       '<var6>',
-    "length": [20],
-    "detail": ["very short", "short", "", "long", "very long"],
-    "complexity": ["very simple", "simple", "complex", "very complex"],
-    "prefix": ["it", "this", "a", "the", "with", ""],
-    "temperature": [0.2, 0.6, 1.0],
-    "categories_file": "./data/saved/categories_25.txt"
-}
+from models.XGBoost import XGBoost
+from models.SVM import SVM
 
 
-def start_prompts():
-    """
-    This function starts prompting ChatGPT with the OpenAI API key (stored as an environment variable) and the arguments
-    shown above/
-    """
-    manager = PromptManager(os.getenv("OPENAI_API_KEY"), args)
-    manager.start_prompts()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", type=str)
+    parser.add_argument("--verbose", action="store_true")
+
+    args = parser.parse_args()
+    model_type = args.model
+    verbose = args.verbose
+
+    train_data = pd.read_csv("./data/splits/train.csv")
+    test_data = pd.read_csv("./data/splits/test.csv")
+    val_data = pd.read_csv("./data/splits/val.csv")
+    pipeline = ["make_lowercase", "expand_contractions", "remove_stopwords", "clean_text"]
+    dataset = Dataset(train_data=train_data, test_data=test_data, val_data=val_data, preprocess=pipeline)
+
+    if model_type == "knn":
+        best_params = {
+            "n_neighbors": 35,
+            "p": 2,
+            "weights": "distance"
+        }
+
+        model = kNN(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "xgboost":
+        best_params = {
+            "learning_rate": 0.1,
+            "max_depth": 7,
+            "n_estimators": 1000
+        }
+
+        model = XGBoost(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "svm":
+        best_params = {
+            "C": 10.0,
+            "gamma": 1.0
+        }
+
+        model = SVM(dataset, best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
+
+    elif model_type == "lstm":
+        best_params = {
+            "lstm_layers": [{"bidirectional": True, "units": 448}],
+            "fc_layers": [{"units": 384, "dropout_p": 0.7}],
+            "early_stopping": {"patience": 20},
+            "scheduler": {"initial_learning_rate": 0.001, "decay_steps": 25},
+            "optimizer": {"name": "adam", "beta_1": 0.906, "beta_2": 0.955},
+            "misc": {"epochs": 500, "batch_size": 256, "verbose": int(verbose)}
+        }
+
+        print()
+        glove = GloVeEmbedding(f"./data/embeddings/glove.840B.300d.txt", dimensionality=300)
+        model = LSTM(dataset, embedding=glove, params=best_params)
+        print()
+        best_accuracy, best_model, _ = model.cross_validate(5, verbose=verbose)
+        print(f"Best accuracy: {best_accuracy}\n")
+        best_model.evaluate(verbose=verbose)
 
 
-dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, val_split=0.2, shuffle=True)
-# glove = GloVeEmbedding("./data/embeddings/glove.6B.100d.txt", dimensionality=100)
-# glove = GloVeEmbedding("./data/embeddings/glove.840B.300d.txt")
-# glove = GloVeEmbedding(file_path=None, dimensionality=100)
-# model = LSTM(dataset, embedding=glove, save_tokenizer="./models/saved/tokenizer.json")
-#
-# # model.start_tuning()
-# model.train()
-
-model = kNN(dataset)
-
-# dataset = Dataset(csv_path="./data/saved/descriptions_25.csv", test_split=0.4, shuffle=True)
-
-
-
-# incorrect_df = model.evaluate(load_model_path="./models/saved/lstm-small.h5", num_incorrect_examples="full")
-# print(len(incorrect_df))
-#
-# incorrect_df = incorrect_df.loc[incorrect_df["probability"] > 0.8]
-# for i, row in incorrect_df.iterrows():
-#     print(row)
-# print(len(incorrect_df))
+if __name__ == "__main__":
+    main()

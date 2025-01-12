@@ -1,6 +1,25 @@
 import numpy as np
-from scipy.spatial.distance import cdist, euclidean
+from scipy.spatial.distance import cdist
 import pandas as pd
+
+import warnings
+
+warnings.simplefilter("default")
+
+# Suppress DeprecationError regarding randrange (I'm not sure where this warning comes from and how to resolve it)
+warnings.filterwarnings(
+    "ignore",
+    message=r"^non-integer arguments to randrange\(\).*deprecated since Python 3\.10.*$",
+    category=DeprecationWarning
+)
+
+
+# Supress DeprecationWarning regarding using numpy using booleans (harmless warning)
+warnings.filterwarnings(
+    "ignore",
+    message=r"`np.bool` is a deprecated alias",
+    category=DeprecationWarning
+)
 
 
 def load_categories(file_path):

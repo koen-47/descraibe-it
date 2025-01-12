@@ -1,10 +1,8 @@
-import os
-import random
+"""
+File to handle all functionality related to GloVe embeddings.
+"""
 
-import matplotlib.pyplot as plt
-from sklearn.manifold import TSNE
 import numpy as np
-from scipy.spatial.distance import euclidean
 from tqdm import tqdm
 
 
@@ -28,14 +26,25 @@ class GloVeEmbedding:
         :param file_path: File path to where the GloVe embeddings are stored.
         :return: Dictionary containing the word index of the GloVe embeddings file.
         """
-        embeddings_index = dict()
+
+        embeddings_index = {}
+
+        # Get number of lines in the GloVe embeddings file (for tqdm)
+        with open(file_path, encoding="utf-8") as file:
+            num_lines = sum(1 for _ in file)
+
+        # Open file and iterate over each embedding
         file = open(file_path, encoding="utf8")
-        num_lines = sum(1 for _ in open(file_path, encoding="utf-8"))
         for line in tqdm(file, total=num_lines, desc="Loading GloVe embedding"):
+            # Get word -> embedding
             values = line.strip().split(" ")
             word = values[0]
+
+            # Store embedding
             coefs = np.asarray(values[1:], dtype="float32")
             embeddings_index[word] = coefs
+
+        # Close embeddings file and return embeddings mapping
         file.close()
         return embeddings_index
 
@@ -54,51 +63,11 @@ class GloVeEmbedding:
                 embedding_matrix[i] = embedding_vector
         return embedding_matrix
 
-    def visualize_words(self, words, special_words=None):
-        tsne = TSNE(n_components=2, random_state=0, perplexity=len(words) - 1)
-        embedding_vectors = np.array([self.embedding_index[word] for word in words])
-        embedding_vectors_2d = tsne.fit_transform(embedding_vectors)
-
-        plt.figure(figsize=(8, 8))
-        for i, word in enumerate(words):
-            x, y = embedding_vectors_2d[i, :]
-            color = "blue" if special_words is not None else None
-            if special_words is not None and word in special_words:
-                plt.scatter(x, y, color="red")
-            else:
-                plt.scatter(x, y, color=color)
-            plt.annotate(word, (x, y), xytext=(5, 2), textcoords="offset points", ha="right", va="bottom")
-
-        plt.show()
-
-    def calculate_k_words_max_min_distance(self, words, k, n=100):
-        embedding_word_vectors = {word: self.embedding_index[word] for word in words}
-
-        min_distances = []
-        for _ in tqdm(range(n)):
-            k_vectors = dict(random.sample(embedding_word_vectors.items(), k))
-            distances = []
-            for v1 in k_vectors.values():
-                for v2 in k_vectors.values():
-                    if not np.array_equal(v1, v2):
-                        distance = euclidean(v1, v2)
-                        distances.append(distance)
-            min_distance = min(distances)
-            min_distances.append((str(list(k_vectors.keys())), min_distance))
-
-        min_distances = sorted(min_distances, key=lambda x: x[1], reverse=True)
-        return min_distances
-
-    def calculate_min_distance_between_words(self, words):
-        embedding_word_vectors = {word: self.embedding_index[word] for word in words}
-
-        distances = []
-        for w1, v1 in embedding_word_vectors.items():
-            for w2, v2 in embedding_word_vectors.items():
-                if not np.array_equal(v1, v2):
-                    distance = euclidean(v1, v2)
-                    distances.append((w1, w2, distance))
-        return min(distances, key=lambda item: item[2])
-
     def __getitem__(self, item):
+        """
+        Gets the embedding associated with a specified word.
+        :param item: word to index
+        :return: embedding associated with the specified word.
+        """
         return self.embedding_index[item]
+
