@@ -1,5 +1,5 @@
-./tests
-./models/saved
+./tests/*
+./models/saved/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
