@@ -39,7 +39,7 @@ Run the following commands to run a specified model on the data (for the setup u
 python main.py --model [model] [verbosity]
 ```
 
-The model arguments are: `knn`, `xgboost`, `svm` or `lstm`. To turn on the verbosity, add `--verbose` to the end of the command.
+The model arguments are: `knn`, `xgboost`, `svm` or `lstm`. To print the results, add `--verbose` to the end of the command.
 
 In order to run the LSTM model, you need to download the [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors) and add them to the folder `data/embeddings`.
 
