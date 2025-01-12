@@ -21,7 +21,7 @@ Create a conda environment with a name of your choice with Python version 3.10:
 
 
 ```shell
-conda create -n <env_name> python=3.10
+conda create -n [env_name] python=3.10
 ```
 
 Activate it and install all necessary libraries:
@@ -46,6 +46,13 @@ In order to run the LSTM model, you need to download the [pretrained GloVe word 
 
 ## Methodology
 
+The following section offers a concise overview of the methodology used 
+in the development of the dataset and the model experiments 
+conducted on it. It includes links to the relevant code and 
+results for reference. While it highlights the key aspects of the 
+approach, it is not intended to be exhaustive (please refer to the 
+code for a complete and detailed overview).
+
 ### Data Overview
 The dataset is created through three key phases: selection, collection, and preparation. Each phase is detailed below 
 to provide a clear understanding of the data pipeline.
@@ -54,17 +61,17 @@ to provide a clear understanding of the data pipeline.
 The first step towards collecting the dataset consists of selecting which words will 
 need to be described by the player. We take inspiration from the game [Quick, Draw!](https://quickdraw.withgoogle.com/), 
 a computer vision alternative which uses doodles instead of text descriptions. 
-First, we select the [words](https://github.com/googlecreativelab/quickdraw-dataset/blob/master/categories.txt) used in that game.
-As our approach to word selection is based on word embeddings, we remove all [entries](./data/saved/categories_289.txt) consisting of more than one word to ensure we can compare
-the embeddings with each other.
+First, I select the [words](https://github.com/googlecreativelab/quickdraw-dataset/blob/master/categories.txt) used in that game.
+As our approach to word selection is based on word embeddings, I remove all [entries](./data/saved/categories_289.txt) consisting of more than one 
+word to ensure I can compare the embeddings with each other.
 
-From these remaining words, we further narrow them down to a subset of 25. This is done in the interest of 
+From these remaining words, I further narrow them down to a subset of 25. This is done in the interest of 
 the time and resource costs incurred by using OpenAI's API for large scale purposes, as many descriptions per word will be 
 needed to accurately and fairly evaluate the validity of the more data hungry neural models. 
 
-To select a suitable set of 25 words, we aim to create as semantically a diverse subset as possible.
+To select a suitable set of 25 words, I aim to create as semantically a diverse subset as possible.
 This can be achieved by maximizing the minimum distance between the embeddings associated with each of the selected words.
-More formally, for a set of words $W$, we want to find the subset of words $W' \subset W$ using the Euclidean
+More formally, for a set of words $W$, I want to find the subset of words $W' \subset W$ using the Euclidean
 distance function $d(e(w_i), e(w_j))$, where $e(w)$ returns the embedding associated with word $w \in W$.
 The subset $W'$ should satisfy the following:
 
@@ -73,7 +80,7 @@ $$
 $$
 
 This is known as the [<em>max-min diversity problem</em>](https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=51f97d822ec695f5700ac353bfff285bd44ef0e7) and is considered NP-hard. 
-As such, we use a greedy algorithm that approximates the optimal subset. The embeddings we use are [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors).
+As such, I use a greedy algorithm that approximates the optimal subset. The embeddings I use are [pretrained GloVe word embeddings](https://nlp.stanford.edu/projects/glove/) (840B tokens + 300d vectors).
 
 The [final set of selected words](./data/saved/categories_25.txt) are visualized below using t-SNE (2 components, perplexity is 24). 
 
@@ -86,7 +93,7 @@ The [final set of selected words](./data/saved/categories_25.txt) are visualized
 
 
 #### Data Collection
-For each of the selected 25 words, we [prompt ChatGPT](./data/PromptManager.py) for a textual description of the given word. The prompt template used for ChatGPT is parameterized across six aspects. The template is as follows:
+For each of the selected 25 words, I [prompt ChatGPT](./data/PromptManager.py) for a textual description of the given word. The prompt template used for ChatGPT is parameterized across six aspects. The template is as follows:
 
 ```diff
 Give me [length] [detail] unique descriptions of [word]. Do not include the word [word] or any of its variations in your response. Use [complexity] language in your response. Start all your responses with [prefix].
@@ -105,7 +112,7 @@ The chosen sample size per word is based on MNIST (7000 images per digit).
 
 
 #### Data Preparation
-The [preprocessing pipeline](./data/PreprocessingPipeline.py) we use consists of the following sequence of steps:
+The [preprocessing pipeline](./data/PreprocessingPipeline.py) I use consists of the following sequence of steps:
 1. Making all text lowercase.
 2. Expanding all contractions (e.g., can't &rarr; can not).
 3. Removing all stopwords (e.g., a, the, it, etc.).
@@ -130,10 +137,11 @@ We experiment with four different models: a [kNN](./models/kNN.py), [XGBoost](./
 #### Hyperparameter Tuning
 
 Due to the size of the hyperparameter space of the LSTM and to enable fair comparison between models, 
-we restrict the tuning process to a single train-validation split (as defined [here](#data-preparation)). 
-We use Grid Search (kNN, SVM) and Bayesian Optimization (LSTM).
-The method used is determined by the number of hyperparameters, where Grid Search
-is used for smaller search spaces and Bayesian Optimization is used for larger ones.
+I restrict the tuning process to a single train-validation split (as defined [here](#data-preparation)). 
+We use grid search (kNN, XGBoost, SVM) and Bayesian optimization (LSTM).
+The method used is determined by the number of hyperparameters, where grid search
+is used for smaller search spaces and Bayesian optimization is used for larger ones.
+For the LSTM model, I also perform some very light manual tuning afterward.
 
 
 <table>
@@ -153,7 +161,7 @@ method<span></span></th>
         <tr>
             <td rowspan=2><a href="./results/knn/knn_tuning.json">kNN</a></td>
             <td colspan="2"># neighbours</td>
-            <td rowspan="2">Grid Search</td>
+            <td rowspan="2">Grid search</td>
             <td>{1, 2, ..., 50}</td>
             <td colspan="2">35</td>
         </tr>
@@ -163,9 +171,9 @@ method<span></span></th>
             <td colspan="2">distance</td>
         </tr>
         <tr>
-            <td rowspan=3><a href="./results/xgboost/xgboost_tuning.json">XGBoost</a></td>
+            <td rowspan=3><a href="./results/xgboost/xgboost_tuning.json">XGBoost</a> <sup>1</sup></td>
             <td colspan="2"># estimators</td>
-            <td rowspan="3">Grid Search</td>
+            <td rowspan="3">Grid search</td>
             <td>{100, 1000}</td>
             <td colspan="2">1000</td>
         </tr>
@@ -182,7 +190,7 @@ method<span></span></th>
         <tr>
             <td rowspan=2><a href="./results/svm/svm_tuning.json">SVM</a></td>
             <td colspan="2">$C$</td>
-            <td rowspan="2">Grid Search</td>
+            <td rowspan="2">Grid search</td>
             <td>{10<sup>-1</sup>, 1, ..., 10<sup>3</sup>}</td>
             <td colspan="2">10</td>
         </tr>
@@ -192,10 +200,10 @@ method<span></span></th>
             <td colspan="2">1</td>
         </tr>
         <tr>
-            <td rowspan=10><a href="./results/lstm">LSTM</a><sup>1</sup></td>
+            <td rowspan=10><a href="./results/lstm">LSTM</a> <sup>2</sup></td>
             <td rowspan=4><a href="./results/lstm/lstm_tuning_arch_1.json">Architecture</a></td>
             <td># LSTM units</td>
-            <td rowspan="10">Bayesian Optimization</td>
+            <td rowspan="10">Bayesian optimization</td>
             <td>{64, 128, ..., 512}</td>
             <td colspan="2">448</td>
         </tr>
@@ -251,7 +259,11 @@ method<span></span></th>
     </tbody>
 </table>
 
-<sup>1</sup> The loss function used for all LSTM experiments is sparse cross-entropy as the labels are not one-hot encoded.
+<sup>1</sup> The `tree_method` parameter is set to `hist` to ensure the model
+can be used on a GPU.
+
+<sup>2</sup> The loss function used for all LSTM experiments is sparse cross-entropy as the labels are not one-hot encoded.
+Additionally, the batch size used is 256 trained across 10,000 epochs (early stopping patience of 10).
 
 ### Evaluation
 
@@ -260,11 +272,13 @@ method<span></span></th>
 The procedure during model evaluation is as follows. We concatenate the training and validation data and perform
 cross validation (5 splits) on this set. The best performing model (by accuracy) is selected which is then evaluated
 on the test. We mainly focus on accuracy as the dataset has a class balance, but the precision, recall and F1-score
-are also reported for completeness.
+are also reported for completeness. All model hyperparameters are identical to those used during tuning, except
+for the LSTM model, which uses an early stopping patience of 20.
 
 #### Results
 
 The table below shows the results for all four models, with the best results highlighted in **bold**. The LSTM model performs best, followed by SVM, XGBoost and kNN.
+
 
 <div align="center">
     <table>
@@ -309,7 +323,7 @@ The table below shows the results for all four models, with the best results hig
 </div>
 
 The two graphs below show the loss and accuracy curves of the LSTM model. According to the loss, the model 
-is overfitting, but the accuracy still keeps improving. Despite this, we still opt to use the LSTM
+is overfitting, but the accuracy still keeps improving. Despite this, I still opt to use the LSTM
 model in the [demo](https://descraibe-it.onrender.com/). This is because (1) the cost of missclassification 
 in the context of the game is very high (resulting in game over), and (2) there is no need to generalize to 
 new data since the game consists of a fixed number of words.
