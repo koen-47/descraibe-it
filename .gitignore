@@ -7,6 +7,13 @@ web/node_modules
 data/embeddings/glove.6B.100d.txt
 models/saved/best-lstm.h5
 
+tests
+tests/*
+
+models
+models/saved/*
+
+
 # C extensions
 *.so
 

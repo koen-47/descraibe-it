@@ -13,3 +13,4 @@ tensorflow==2.10.0
 tensorflow-intel==2.10.0
 tensorflow-gpu==2.10.0
 tqdm==4.66.5
+xgboost~=2.1.3
