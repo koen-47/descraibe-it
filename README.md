@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 ### Reproducing the Results
 
-Run the following commands to run a specified model on the data (for the setup used here, see ...).
+Run the following commands to run a specified model on the data (for the setup used here, see the [evaluation](#evaluation) section).
 
 ```shell
 python main.py --model [model] [verbosity]
@@ -59,10 +59,10 @@ to provide a clear understanding of the data pipeline.
 
 #### Data Selection
 The first step towards collecting the dataset consists of selecting which words will 
-need to be described by the player. We take inspiration from the game [Quick, Draw!](https://quickdraw.withgoogle.com/), 
+need to be described by the player. For this, I take inspiration from the game [Quick, Draw!](https://quickdraw.withgoogle.com/), 
 a computer vision alternative which uses doodles instead of text descriptions. 
 First, I select the [words](https://github.com/googlecreativelab/quickdraw-dataset/blob/master/categories.txt) used in that game.
-As our approach to word selection is based on word embeddings, I remove all [entries](./data/saved/categories_289.txt) consisting of more than one 
+As my approach to word selection is based on word embeddings, I remove all [entries](./data/saved/categories_289.txt) consisting of more than one 
 word to ensure I can compare the embeddings with each other.
 
 From these remaining words, I further narrow them down to a subset of 25. This is done in the interest of 
@@ -104,10 +104,10 @@ The six parameters included in the template:
 - Length: number of descriptions to generate per prompt for a given word. It will always generate 20 descriptions.
 - Level of detail: length of each description for a given word. The possible values are: <em>very simple</em>, <em>simple</em>, <em>long</em>, <em>very long</em>, or blank (i.e., not specified).
 - Complexity: type of diction used in each description for a given word (e.g., sophisticated vs. simple). The possible values are: <em>very simple</em>, <em>simple</em>, <em>complex</em>, <em>very complex</em>, or blank (i.e., not specified).
-- Prefix: the first word that needs to be used in the description (designed to encourage difference sentence structures). The possible values are: <em>it</em>, <em>this</em>, <em>a</em>, <em>the</em>, <em>with</em>, or blank (i.e., not specified). If the prefix is blank, then the last sentence in the prompt template is also removed.
+- Prefix: the first word that needs to be used in the description (designed to encourage different sentence structures). The possible values are: <em>it</em>, <em>this</em>, <em>a</em>, <em>the</em>, <em>with</em>, or blank (i.e., not specified). If the prefix is blank, then the last sentence in the prompt template is also removed.
 - Temperature: value of the temperature variable used in call to ChatGPT's API. The possible values are: 0.2, 0.6, or 1.
 
-We compute all possible combinations of these parameters for each word to generate [7200 descriptions per word](./data/saved/raw_descriptions.csv) (180,000 in total). 
+I compute all possible combinations of these parameters for each word to generate [7200 descriptions per word](./data/saved/raw_descriptions.csv) (180,000 in total). 
 The chosen sample size per word is based on MNIST (7000 images per digit).
 
 
@@ -118,7 +118,7 @@ The [preprocessing pipeline](./data/PreprocessingPipeline.py) I use consists of 
 3. Removing all stopwords (e.g., a, the, it, etc.).
 4. Cleaning all text (e.g., punctuation, hyperlinks, etc.).
 
-We also remove all duplicates and use label encoding. Lemmatization was initially explored as a method for text standardization, but it 
+I also remove all duplicates and use label encoding. Lemmatization was initially explored as a method for text standardization, but it 
 was ultimately discarded after experiments showed it reduced performance.
 
 The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random split since there is a class balance, as shown below:
@@ -132,13 +132,13 @@ The [train-test-validation](./data/splits) split is 55%-30%-15%. It is a random 
 
 
 ### Model Development
-We experiment with four different models: a [kNN](./models/kNN.py), [XGBoost](./models/XGBoost.py), [SVM](./models/SVM.py) and [LSTM](./models/LSTM.py).
+I experiment with four different models: a [kNN](./models/kNN.py), [XGBoost](./models/XGBoost.py), [SVM](./models/SVM.py) and [LSTM](./models/LSTM.py).
 
 #### Hyperparameter Tuning
 
 Due to the size of the hyperparameter space of the LSTM and to enable fair comparison between models, 
 I restrict the tuning process to a single train-validation split (as defined [here](#data-preparation)). 
-We use grid search (kNN, XGBoost, SVM) and Bayesian optimization (LSTM).
+I use grid search (kNN, XGBoost, SVM) and Bayesian optimization (LSTM).
 The method used is determined by the number of hyperparameters, where grid search
 is used for smaller search spaces and Bayesian optimization is used for larger ones.
 For the LSTM model, I also perform some very light manual tuning afterward.
@@ -269,9 +269,9 @@ Additionally, the batch size used is 256 trained across 10,000 epochs (early sto
 
 #### Procedure
 
-The procedure during model evaluation is as follows. We concatenate the training and validation data and perform
+The procedure during model evaluation is as follows. I concatenate the training and validation data and perform
 cross validation (5 splits) on this set. The best performing model (by accuracy) is selected which is then evaluated
-on the test. We mainly focus on accuracy as the dataset has a class balance, but the precision, recall and F1-score
+on the test set. I mainly focus on accuracy as the dataset has a class balance, but the precision, recall and F1-score
 are also reported for completeness. All model hyperparameters are identical to those used during tuning, except
 for the LSTM model, which uses an early stopping patience of 20.
 
