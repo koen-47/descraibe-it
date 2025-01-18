@@ -55,7 +55,7 @@ code for a complete and detailed overview).
 
 ### Data Overview
 The dataset is created through three key phases: selection, collection, and preparation. Each phase is detailed below 
-to provide a clear understanding of the data pipeline.
+to provide a clear understanding of the data pipeline. All steps were carried out in July 2023.
 
 #### Data Selection
 The first step towards collecting the dataset consists of selecting which words will 
